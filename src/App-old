@@ -1,0 +1,188 @@
+<template>
+  <div id="app" @mousemove="moveAt($event)">
+    <ul id="my-list">
+      <li
+        v-for="item in items"
+        ref="li"
+        :key="item.key"
+        :style="getStyle(item.key)"
+        @mouseup="myDragStop($event)"
+        draggable="true"
+      >
+        <i class="fa fa-arrows-alt" @mousedown="myDrag(item.key)">+</i>
+        {{ item.title }}
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "App",
+  data() {
+    return {
+      items: [
+        { key: 0, title: "test 1" },
+        { key: 1, title: "test 2" },
+        { key: 2, title: "test 3" },
+        { key: 3, title: "test 4" },
+      ],
+      reorderedList: [],
+      categories: [],
+      draggableIndex: -1,
+      dragLeft: 0,
+      dragTop: 0,
+      dragHeight: 0,
+    };
+  },
+  methods: {
+    myDrag(key) {
+      // myDrag(key, event) {
+      this.draggableIndex = key;
+      // this.reorderedList = this.items;
+      // this.reorderedList = this.cloneArray(this.items);
+      this.reorderedList = [];
+      // this.moveAt(event);
+    },
+    moveAt(event) {
+      if (this.draggableIndex === -1) {
+        return;
+      }
+
+      this.dragLeft = event.pageX - 16;
+      this.dragTop = event.pageY - 16;
+    },
+    reorderList(event) {
+      // let reorderedList = [];
+      let reorderedList = this.cloneArray(this.items);
+      let lastI = -1;
+      // получить отображаемые элементы списка
+      // и их координаты
+
+      this.$refs.li.forEach((elem, i) => {
+        // игнорируем перетаскиваемый элемент
+        if (i !== this.draggableIndex) {
+          if (elem.offsetTop < event.pageY && i > this.draggableIndex) {
+            // если мы здесь, то элемент переместился вниз
+            reorderedList[i - 1] = this.items[i];
+
+            if (lastI === -1 || lastI < i) {
+              lastI = i;
+            }
+
+            console.log("вниз");
+          } else if (elem.offsetTop > event.pageY && i < this.draggableIndex) {
+            // если мы здесь, то элемент переместился вверх
+            reorderedList[i + 1] = this.items[i];
+
+            if (lastI === -1 || lastI > i) {
+              lastI = i;
+            }
+
+            console.log("вверх");
+          }
+          // else {
+          //   //иначе его позиции не изменились
+          //   reorderedList[i] = this.items[i];
+          //   console.log("на месте");
+          // }
+        }
+      });
+      //
+      // если позиции изменились, мы должны переопределить элементы
+      if (lastI !== -1) {
+        reorderedList[lastI] = this.items[this.draggableIndex];
+        this.reorderedList = this.cloneArray(reorderedList);
+      }
+    },
+    myDragStop(event) {
+      this.reorderList(event);
+      this.items = this.cloneArray(this.reorderedList);
+      this.draggableIndex = -1;
+      this.dragLeft = 0;
+      this.dragTop = 0;
+      console.log("STOP");
+    },
+    cloneArray(array) {
+      return Object.assign([], array, array);
+    },
+    getStyle(key) {
+      return {
+        position: this.positionByKey(key),
+        left: this.leftByKey(key),
+        top: this.topByKey(key),
+        "z-index": this.zIndexByKey(key),
+      };
+    },
+    isDragging(key) {
+      return this.draggableIndex === key;
+    },
+    positionByKey(key) {
+      return this.isDragging(key) ? "absolute" : "relative";
+    },
+    leftByKey(key) {
+      return this.isDragging(key) ? this.dragLeft + "px" : 0;
+    },
+    topByKey(key) {
+      return this.isDragging(key) ? this.dragTop + "px" : 0;
+    },
+    zIndexByKey(key) {
+      return this.isDragging(key) ? 2 : 1;
+    },
+  },
+};
+</script>
+
+<style>
+.droppable {
+  padding: 15px;
+  border-radius: 5px;
+  background: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.droppable h4 {
+  color: white;
+}
+
+.draggable {
+  background: white;
+  padding: 5px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.draggable h5 {
+  margin: 0;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+}
+
+ul {
+  font-size: 60px;
+  list-style-type: none;
+  color: white;
+}
+
+li {
+  position: relative;
+  z-index: 1;
+  border: 2px solid#2c3e50;
+  border-radius: 15px;
+  height: 75px;
+  background-color: black;
+}
+
+.fa-arrows-alt {
+  cursor: pointer;
+}
+</style>
