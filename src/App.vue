@@ -20,12 +20,13 @@
       progress#progress-bar(ref="progressBar", max=100, value=0)
     #gallery
       img(ref="preview")
-  //- .slider-main
-  //- .list.slider-frames
-  //-   .list-item.frame.slider-frame(v-for="", :key="")
-  //-     .frame-add_prev(v-if="")
-  //-     .frame-img
-  //-   .slider-frame_add_next
+  .slider-main
+  ul.list.slider-frames
+    li.list-item.frame.slider-frame(v-for="item in items", :key="item.id")
+      a.frame-add_prev(@click.prevent="insertImage(item)", href="#") Insert before {{ item.id }}
+      .frame-img(:src="item.id", :alt="'Image ' + item.id")
+    li
+      a.slider-frame_add_next(@click.prevent="addImage", href="#") Add image
 </template>
 
 <script>
@@ -37,6 +38,7 @@ export default {
       filesDone: 0,
       filesToDo: 0,
       items: [],
+      lastTopID: 0,
     };
   },
   computed: {
@@ -106,31 +108,58 @@ export default {
       this.filesDone++;
       this.$refs.progressBar.value = (this.filesDone / this.filesToDo) * 100;
     },
-    insertItem(nextNumber) {
-      if (!Number.isFinite(nextNumber)) {
+    insertImage(nextImage) {
+      const NEXT_ID = nextImage.id;
+
+      if (!isFinite(NEXT_ID)) {
+        console.log("infinite");
         return false;
       }
 
-      let tempInt = Math.trunc(nextNumber);
-      let tempFloat = nextNumber - tempInt;
+      const NEXT_INDEX = this.items.findIndex((el) => el.id == NEXT_ID);
+
+      if (NEXT_INDEX < 0) {
+        console.log("not index");
+        return false;
+      }
+
+      const OLD_BEFORE_INSERTS_COUNT =
+        this.items[NEXT_INDEX].beforeInsertsCount;
+      let tempInt = Math.trunc(NEXT_ID);
+      let tempFloat = NEXT_ID - tempInt;
       let result = "";
 
       if (tempFloat == 0) {
         result = tempInt + ".777";
       } else {
+        // let counter = 0;
         let tempNumber = tempFloat;
+        tempNumber *= 1000;
+        console.log(tempNumber);
 
-        while (tempFloat > 0) {
-          tempNumber *= 10;
-          tempFloat = tempNumber - Math.trunc(tempNumber);
-        }
+        // while (tempFloat > 0 && counter < 3) {
+        //   tempNumber *= 10;
+        //   tempFloat = tempNumber - Math.trunc(tempNumber);
+        //   counter++;
+        // }
 
+        console.log(tempNumber);
         tempNumber--;
+        console.log(tempNumber);
         tempNumber *= 0.001;
         result = (tempInt + tempNumber).toFixed(3);
       }
 
-      this.items.push(result);
+      this.items[NEXT_INDEX] = {
+        id: NEXT_ID,
+        beforeInsertsCount: OLD_BEFORE_INSERTS_COUNT + 1,
+      };
+      // this.items.splice(NEXT_INDEX - 1, 0, { id: result, beforeInsertsCount: 0 });
+      this.items.splice(NEXT_INDEX, 0, { id: result, beforeInsertsCount: 0 });
+    },
+    addImage() {
+      this.lastTopID++;
+      this.items.push({ id: this.lastTopID + "", beforeInsertsCount: 0 });
     },
   },
 };
