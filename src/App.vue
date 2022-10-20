@@ -22,9 +22,12 @@
       img(ref="preview")
   .slider-main
   ul.list.slider-frames
-    li.list-item.frame.slider-frame(v-for="item in items", :key="item.id")
-      a.frame-add_prev(@click.prevent="insertImage(item)", href="#") Insert before {{ item.id }}
-      .frame-img(:src="item.id", :alt="'Image ' + item.id")
+    li.list-item.frame.slider-frame(
+      v-for="(item, index) in items",
+      :key="item"
+    )
+      a.frame-add_prev(@click.prevent="insertBeforeImage(index)", href="#") Insert before {{ item }}
+      .frame-img(:src="item", :alt="'Image ' + item")
     li
       a.slider-frame_add_next(@click.prevent="addImage", href="#") Add image
 </template>
@@ -39,6 +42,7 @@ export default {
       filesToDo: 0,
       items: [],
       lastTopID: 0,
+      separator: ".",
     };
   },
   computed: {
@@ -108,58 +112,36 @@ export default {
       this.filesDone++;
       this.$refs.progressBar.value = (this.filesDone / this.filesToDo) * 100;
     },
-    insertImage(nextImage) {
-      const NEXT_ID = nextImage.id;
-
-      if (!isFinite(NEXT_ID)) {
-        console.log("infinite");
-        return false;
-      }
-
-      const NEXT_INDEX = this.items.findIndex((el) => el.id == NEXT_ID);
-
-      if (NEXT_INDEX < 0) {
-        console.log("not index");
-        return false;
-      }
-
-      const OLD_BEFORE_INSERTS_COUNT =
-        this.items[NEXT_INDEX].beforeInsertsCount;
-      let tempInt = Math.trunc(NEXT_ID);
-      let tempFloat = NEXT_ID - tempInt;
+    getIdParts(id) {
+      return id.split(this.separator);
+    },
+    insertBeforeImage(nextIndex) {
+      const idParts = this.getIdParts(this.items[nextIndex]);
+      const COUNT_PARTS = idParts.length;
+      const FIRST_ID_INDEX = "1";
+      const PREV_INDEX = nextIndex - 1;
+      let postfix = FIRST_ID_INDEX;
       let result = "";
 
-      if (tempFloat == 0) {
-        result = tempInt + ".777";
-      } else {
-        // let counter = 0;
-        let tempNumber = tempFloat;
-        tempNumber *= 1000;
-        console.log(tempNumber);
+      if (PREV_INDEX >= 0) {
+        const prevIdParts = this.getIdParts(this.items[nextIndex - 1]);
+        const PREV_COUNT_PARTS = prevIdParts.length;
 
-        // while (tempFloat > 0 && counter < 3) {
-        //   tempNumber *= 10;
-        //   tempFloat = tempNumber - Math.trunc(tempNumber);
-        //   counter++;
-        // }
-
-        console.log(tempNumber);
-        tempNumber--;
-        console.log(tempNumber);
-        tempNumber *= 0.001;
-        result = (tempInt + tempNumber).toFixed(3);
+        if (COUNT_PARTS - PREV_COUNT_PARTS < 0) {
+          postfix = parseInt(prevIdParts[PREV_COUNT_PARTS - 1]) + 1;
+        }
       }
 
-      this.items[NEXT_INDEX] = {
-        id: NEXT_ID,
-        beforeInsertsCount: OLD_BEFORE_INSERTS_COUNT + 1,
-      };
-      // this.items.splice(NEXT_INDEX - 1, 0, { id: result, beforeInsertsCount: 0 });
-      this.items.splice(NEXT_INDEX, 0, { id: result, beforeInsertsCount: 0 });
+      for (let index = 0; index < idParts.length; index++) {
+        result += idParts[index] + this.separator;
+      }
+
+      result += postfix;
+      this.items.splice(nextIndex, 0, result);
     },
     addImage() {
       this.lastTopID++;
-      this.items.push({ id: this.lastTopID + "", beforeInsertsCount: 0 });
+      this.items.push(this.lastTopID + "");
     },
   },
 };
