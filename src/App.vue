@@ -1,35 +1,31 @@
 <template lang="pug">
 #app.slider
-  #drop-area(
-    ref='dropArea',
-    :class='dropAreaModifs',
-    @dragenter.prevent.stop='onDragenter',
-    @dragover.prevent.stop='onDragover',
-    @dragleave.prevent.stop='onDragleave',
-    @drop.prevent.stop='onDrop($event)'
-  )
-    form.my-form
-      p Загрузите изображения с помощью диалога выбора файлов или перетащив нужные изображения в выделенную область
-      input#fileElem(
-        type='file',
-        multiple,
-        @change='onFiles($event)',
-        accept='image/*'
-      )
-      label.button(for='fileElem') Выбрать изображения
-      progress#progress-bar(ref='progressBar', max=100, value=0)
-    #gallery
-      img(ref='preview')
   .slider-main
-  ul.list.slider-frames
-    li.list-item.frame.slider-frame(
-      v-for='(item, index) in items',
-      :key='item'
-    )
+  .list.slider-frames
+    .list-item.frame.slider-frame(v-for='(item, index) in items', :key='item')
       a.frame-add_prev(@click.prevent='insertBeforeImage(index)', href='#') Insert before {{ item }}
       .frame-img(:src='item', :alt='"Image " + item')
-    li
-      a.slider-frame_add_next(@click.prevent='addImage', href='#') Add image
+    div
+      #drop-area.slider-frame_add_next(
+        ref='dropArea',
+        :class='dropAreaModifs',
+        @dragenter.prevent.stop='onDragenter',
+        @dragover.prevent.stop='onDragover',
+        @dragleave.prevent.stop='onDragleave',
+        @drop.prevent.stop='onDrop($event)'
+      )
+        form.my-form(@submit.prevent='cancelFormSubmit')
+          p Загрузите изображения с помощью диалога выбора файлов или перетащив нужные изображения в выделенную область
+          input#fileElem(
+            type='file',
+            multiple,
+            @change.prevent='onFiles($event)',
+            accept='image/*'
+          )
+          label.button(for='fileElem') Выбрать изображения
+          progress#progress-bar(ref='progressBar', max=100, value=0)
+        #gallery
+          img(ref='preview')
 </template>
 
 <script>
@@ -74,18 +70,26 @@ export default {
     onFiles(e) {
       this.uploadFiles(e.target.files);
     },
+    cancelFormSubmit() {},
     uploadFiles(files) {
       const filesList = [...files];
       this.initializeProgress(filesList.length); // <- Добавили эту строку
       filesList.forEach(this.uploadFile);
       filesList.forEach(this.previewFile);
     },
+    getExt(fileName) {
+      const LAST_SEPARATOR = fileName.lastIndexOf('.');
+      return fileName.slice(LAST_SEPARATOR + 1);
+    },
     uploadFile(file) {
+      const EXT = this.getExt(file.name);
       const $vm = this;
       const form = new FormData();
       this.addImage();
-      form.append('image', file, this.items[this.items.length - 1]);
-      axios.post(this.uploadHost + 'image/avatar', form).then(() => {
+      form.append('image', file, this.items[this.items.length - 1] + '.' + EXT);
+      // form.append('image', file, this.items[this.items.length - 1]);
+      // form.append('image', file);
+      axios.post(this.uploadHost + 'image/upload', form).then(() => {
         /* Готово. Информируем пользователя */
         $vm.progressDone();
       });

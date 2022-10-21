@@ -1,9 +1,9 @@
 const { IncomingForm } = require('formidable');
 const path = require('path');
 const fs = require('fs');
-const { waterfall, each } = require('async');
+const { waterfall, each, eachSeries } = require('async');
 const { UPLOAD_PATH } = require('@config').client;
-const { ERROR } = require('@httpSt');
+const { SUCCESS, ERROR } = require('@httpSt');
 const { sendError, sendResult } = require('@contr/crud');
 
 let uploadPath;
@@ -22,7 +22,7 @@ const sendMessage = (res, err, messages, info = false) => {
   res.send(data);
 };
 
-const makeDir = (dir) => {
+const makeDir = dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
@@ -63,12 +63,63 @@ const upload = (req, res, dir = '', layer = -1) => {
     const filePath = files.image.path;
     const fileName = files.image.name;
 
-    fs.rename(filePath, path.join(uploadPath, fileName), (err) => {
+    fs.rename(filePath, path.join(uploadPath, fileName), err => {
       sendMessage(res, err, {
         success: 'Изображение успешно добавлено',
         error: 'Не удалось переместить изображение',
       });
     });
+  });
+};
+
+function getFiles(dirPath, callback) {
+  fs.readdir(dirPath, function (err, files) {
+    if (err) {
+      return callback(err);
+    }
+
+    var filePaths = [];
+
+    eachSeries(
+      files,
+      function (fileName, eachCallback) {
+        var filePath = path.join(dirPath, fileName);
+
+        fs.stat(filePath, function (err, stat) {
+          if (err) return eachCallback(err);
+
+          if (stat.isDirectory()) {
+            getFiles(filePath, function (err, subDirFiles) {
+              if (err) return eachCallback(err);
+
+              filePaths = filePaths.concat(subDirFiles);
+              eachCallback(null);
+            });
+          } else {
+            // if (stat.isFile() && /\.js$/.test(filePath)) {
+            // filePaths.push(filePath);
+            const { name, ext } = path.parse(filePath);
+            // filePaths.push({ name, ext });
+            filePaths.push(name);
+            // }
+
+            eachCallback(null);
+          }
+        });
+      },
+      function (err) {
+        callback(err, filePaths);
+      },
+    );
+  });
+}
+
+const load = (req, res) => {
+  getFiles(UPLOAD_PATH, function (err, files) {
+    if (files) {
+      files = files.sort((a, b) => parseInt(a) - parseInt(b));
+    }
+    res.status(SUCCESS).json(err || files);
   });
 };
 
@@ -82,7 +133,7 @@ const remove = (res, imageName, dir = '', layer = -1, cb = false) => {
     return fs.unlink(IMAGE_PATH, cb);
   }
 
-  fs.unlink(IMAGE_PATH, (err) => {
+  fs.unlink(IMAGE_PATH, err => {
     sendMessage(res, err, {
       success: 'Изображение успешно удалено',
       error: 'Не удалось удалить изображение',
@@ -139,11 +190,11 @@ const startWaterfall = (res, mode, cbArray, images = []) => {
     // });
 
     each(
-      images.filter((item) => !!item),
+      images.filter(item => !!item),
       (image, cb) => {
         fs.unlink(image.path, cb);
       },
-      (err) => {
+      err => {
         return waterfallCB(err, result, res, mode);
       },
     );
@@ -157,6 +208,7 @@ module.exports = {
   getUploadPath,
   getTempPath,
   upload,
+  load,
   remove,
   isAnyBreakpointImage,
   deleteBreakpointImages,
