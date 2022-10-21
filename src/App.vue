@@ -1,48 +1,53 @@
 <template lang="pug">
 #app.slider
   #drop-area(
-    ref="dropArea",
-    :class="dropAreaModifs",
-    @dragenter.prevent.stop="onDragenter",
-    @dragover.prevent.stop="onDragover",
-    @dragleave.prevent.stop="onDragleave",
-    @drop.prevent.stop="onDrop(e)"
+    ref='dropArea',
+    :class='dropAreaModifs',
+    @dragenter.prevent.stop='onDragenter',
+    @dragover.prevent.stop='onDragover',
+    @dragleave.prevent.stop='onDragleave',
+    @drop.prevent.stop='onDrop($event)'
   )
     form.my-form
       p Загрузите изображения с помощью диалога выбора файлов или перетащив нужные изображения в выделенную область
       input#fileElem(
-        type="file",
+        type='file',
         multiple,
-        accept="image/*",
-        @change="onFiles(files)"
+        @change='onFiles($event)',
+        accept='image/*'
       )
-      label.button(for="fileElem") Выбрать изображения
-      progress#progress-bar(ref="progressBar", max=100, value=0)
+      label.button(for='fileElem') Выбрать изображения
+      progress#progress-bar(ref='progressBar', max=100, value=0)
     #gallery
-      img(ref="preview")
+      img(ref='preview')
   .slider-main
   ul.list.slider-frames
     li.list-item.frame.slider-frame(
-      v-for="(item, index) in items",
-      :key="item"
+      v-for='(item, index) in items',
+      :key='item'
     )
-      a.frame-add_prev(@click.prevent="insertBeforeImage(index)", href="#") Insert before {{ item }}
-      .frame-img(:src="item", :alt="'Image ' + item")
+      a.frame-add_prev(@click.prevent='insertBeforeImage(index)', href='#') Insert before {{ item }}
+      .frame-img(:src='item', :alt='"Image " + item')
     li
-      a.slider-frame_add_next(@click.prevent="addImage", href="#") Add image
+      a.slider-frame_add_next(@click.prevent='addImage', href='#') Add image
 </template>
 
 <script>
+import axios from 'axios';
+import { SERVER_BASE_URL } from '@helpers';
+
 export default {
-  name: "App",
+  name: 'App',
   data() {
     return {
+      uploadHost: SERVER_BASE_URL,
       isHighlighted: false,
       filesDone: 0,
       filesToDo: 0,
       items: [],
       lastTopID: 0,
-      separator: ".",
+      separator: '.',
+      firstIdIndex: '1',
     };
   },
   computed: {
@@ -64,43 +69,33 @@ export default {
     },
     onDrop(e) {
       this.isHighlighted = false;
-
-      const dt = e.dataTransfer;
-      const files = dt.files;
-
-      this.onFiles(files);
+      this.uploadFiles(e.dataTransfer.files);
     },
-    onFiles(files) {
-      [...files].forEach(this.uploadFile);
-      this.initializeProgress(files.length); // <- Добавили эту строку
-      files.forEach(this.uploadFile);
-      files.forEach(this.previewFile);
+    onFiles(e) {
+      this.uploadFiles(e.target.files);
+    },
+    uploadFiles(files) {
+      const filesList = [...files];
+      this.initializeProgress(filesList.length); // <- Добавили эту строку
+      filesList.forEach(this.uploadFile);
+      filesList.forEach(this.previewFile);
     },
     uploadFile(file) {
       const $vm = this;
-      const url = "ВАШ URL ДЛЯ ЗАГРУЗКИ ФАЙЛОВ";
-      const formData = new FormData();
-
-      formData.append("file", file);
-
-      fetch(url, {
-        method: "POST",
-        body: formData,
-      })
-        .then(() => {
-          /* Готово. Информируем пользователя */
-          $vm.progressDone();
-        })
-        .catch(() => {
-          /* Ошибка. Информируем пользователя */
-        });
+      const form = new FormData();
+      this.addImage();
+      form.append('image', file, this.items[this.items.length - 1]);
+      axios.post(this.uploadHost + 'image/avatar', form).then(() => {
+        /* Готово. Информируем пользователя */
+        $vm.progressDone();
+      });
     },
     previewFile(file) {
+      const $vm = this;
       const reader = new FileReader();
       reader.readAsDataURL(file);
-
-      reader.onloadend = function () {
-        this.$refs.preview.src = reader.result;
+      reader.onloadend = () => {
+        $vm.$refs.preview.src = reader.result;
       };
     },
     initializeProgress(numfiles) {
@@ -118,13 +113,12 @@ export default {
     insertBeforeImage(nextIndex) {
       const idParts = this.getIdParts(this.items[nextIndex]);
       const COUNT_PARTS = idParts.length;
-      const FIRST_ID_INDEX = "1";
       const PREV_INDEX = nextIndex - 1;
-      let postfix = FIRST_ID_INDEX;
-      let result = "";
+      let postfix = this.firstIdIndex;
+      let result = '';
 
       if (PREV_INDEX >= 0) {
-        const prevIdParts = this.getIdParts(this.items[nextIndex - 1]);
+        const prevIdParts = this.getIdParts(this.items[PREV_INDEX]);
         const PREV_COUNT_PARTS = prevIdParts.length;
 
         if (COUNT_PARTS - PREV_COUNT_PARTS < 0) {
@@ -141,51 +135,12 @@ export default {
     },
     addImage() {
       this.lastTopID++;
-      this.items.push(this.lastTopID + "");
+      this.items.push(this.lastTopID + '');
     },
   },
 };
 </script>
 
-<style>
-#drop-area {
-  border: 2px dashed #ccc;
-  border-radius: 20px;
-  width: 480px;
-  font-family: sans-serif;
-  margin: 100px auto;
-  padding: 20px;
-}
-#drop-area.highlight {
-  border-color: purple;
-}
-p {
-  margin-top: 0;
-}
-.my-form {
-  margin-bottom: 10px;
-}
-#gallery {
-  margin-top: 10px;
-}
-#gallery img {
-  width: 150px;
-  margin-bottom: 10px;
-  margin-right: 10px;
-  vertical-align: middle;
-}
-.button {
-  display: inline-block;
-  padding: 10px;
-  background: #ccc;
-  cursor: pointer;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-}
-.button:hover {
-  background: #ddd;
-}
-#fileElem {
-  display: none;
-}
+<style lang="scss">
+@import '@styles/app';
 </style>

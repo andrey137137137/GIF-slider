@@ -1,18 +1,16 @@
 const router = require('express').Router();
-
-const { isAuth } = require('@auth');
 const image = require('@contr/image');
 
-router.post('/avatar', isAuth, (req, res) => {
+router.post('/avatar', (req, res) => {
   image.upload(req, res);
 });
-router.post('/about', isAuth, (req, res) => {
+router.post('/about', (req, res) => {
   image.upload(req, res, 'about');
 });
-router.post('/works', isAuth, (req, res) => {
+router.post('/works', (req, res) => {
   image.upload(req, res, 'works');
 });
-router.post('/parallax/:layer', isAuth, (req, res) => {
+router.post('/parallax/:layer', (req, res) => {
   image.upload(req, res, 'parallax', req.params.layer);
 });
 

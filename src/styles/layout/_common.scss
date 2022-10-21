@@ -1,0 +1,309 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  position: relative;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  font: 14px/24px $mainFont;
+  color: $grey;
+
+  &.full_screen {
+    height: 100%;
+  }
+}
+
+picture {
+  display: block;
+}
+
+.fade {
+  &-enter-active,
+  &-leave-active {
+    transition: opacity 0.5s;
+  }
+
+  &-enter, &-leave-to /* .fade-leave-active до версии 2.1.8 */ {
+    opacity: 0;
+  }
+
+  &-enter-to, &-leave /* .fade-leave-active до версии 2.1.8 */ {
+    opacity: 1;
+  }
+}
+
+// .full_screen {
+//   height: 100%;
+// }
+
+.main_wrap {
+  position: relative;
+  flex-grow: 1;
+  width: 100%;
+  // min-height: 100%;
+  // overflow: hidden;
+}
+
+.section {
+  overflow: hidden;
+
+  &-title,
+  &-desc {
+    @include margin('* auto');
+    width: 100%;
+    text-align: center;
+    color: inherit;
+  }
+
+  &-title {
+    $elem: &;
+
+    font: 500 21px $mainFont;
+
+    &#{$elem}--uppercase,
+    &#{$elem}--large {
+      font-family: $sectionTitleFont;
+      text-transform: uppercase;
+    }
+
+    &#{$elem}--uppercase {
+      @include padding('23px * 8px');
+    }
+
+    &#{$elem}--large {
+      padding-top: 21px;
+      font-size: 35px/42px;
+    }
+
+    &#{$elem}--underlined {
+      &:after {
+        // display: table;
+        display: block;
+        @include margin('* auto');
+        border-bottom: 3px solid $grey;
+        size: 56px 13px;
+        content: '';
+      }
+    }
+
+    &--large#{$elem}--underlined {
+      &:after {
+        // display: table;
+        // margin-bottom: 0;
+        opacity: 0.5;
+      }
+    }
+  }
+}
+
+::selection {
+  color: $white $darkBlue;
+}
+
+a {
+  transition: color $trsTime;
+  text-decoration: underline;
+
+  &,
+  &:visited,
+  &:link,
+  &:hover {
+    outline-width: 0;
+  }
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.btn {
+  display: block;
+  border: 1px solid $blue;
+  // height: 46px;
+  // font-size: 14px 44px;
+  @include oneLineBlock(46px, 1px);
+  font-weight: 500;
+  text-decoration: none;
+  text-align: center;
+  color: $white $blue;
+  transition: border-color $trsTime, background-color $trsTime;
+
+  &--opacity {
+    border-color: $white;
+    padding: 0 20px;
+    background-color: unset;
+  }
+
+  &--full_opacity {
+    border-color: rgba($white, 0);
+    background-color: unset;
+  }
+
+  &:hover {
+    border-color: $darkBlue;
+    background-color: $darkBlue;
+  }
+}
+
+.container,
+.nav,
+// .socials,
+.menu,
+.form-row,
+.top_wrap,
+.clearfix {
+  &:after {
+    display: block;
+    size: 100% 0;
+    clear: both;
+    content: '';
+  }
+}
+
+.container {
+  $block: &;
+
+  // display: flex;
+  // flex-wrap: wrap;
+  // justify-content: space-around;
+  // align-items: flex-start;
+  // align-content: flex-start;
+  @include margin('* auto');
+  @include padding('* 10px');
+  width: 100%;
+  min-width: 300px;
+  max-width: 320px;
+  // max-width: 1800px;
+
+  .col {
+    width: 100%;
+  }
+
+  &#{$block}--full_width {
+    @include padding('* 0');
+  }
+}
+
+.img_wrap {
+  overflow: hidden;
+
+  &-img {
+    max-width: 100%;
+    color: inherit;
+  }
+}
+
+ul {
+  list-style: none inside;
+}
+
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+
+  &-link {
+    float: left;
+    display: block;
+    flex-grow: 1;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  // &-link {
+  //   display: block;
+  //   text-align: center;
+  //   text-decoration: none;
+  //   color: inherit;
+  // }
+}
+
+.icon {
+  size: 63px 78px;
+  font: 28px/78px FontAwesome;
+  text-align: center;
+
+  &--github:before {
+    content: '\f09b';
+  }
+
+  &--github_alt:before {
+    content: '\f113';
+  }
+
+  &--skype:before {
+    content: '\f17e';
+  }
+
+  &--linkedin:before {
+    content: '\f0e1';
+  }
+
+  &--vk:before {
+    content: '\f189';
+  }
+
+  &--check {
+    content: '\f00c';
+  }
+
+  &--chevron {
+    &_down:before {
+      content: '\f078';
+    }
+
+    &_left:before {
+      content: '\f053';
+    }
+
+    &_right:before {
+      content: '\f054';
+    }
+
+    &_up:before {
+      content: '\f077';
+    }
+  }
+
+  &--bars:before {
+    content: '\f0c9';
+  }
+
+  &--close:before {
+    content: '\f00d';
+  }
+
+  &--link:before {
+    content: '\f0c1';
+  }
+
+  &--quote:before {
+    content: '\f10d';
+  }
+
+  &--envelope:before {
+    content: '\f0e0';
+  }
+
+  &--phone:before {
+    content: '\f095';
+  }
+
+  &--map_marker:before {
+    content: '\f041';
+  }
+}

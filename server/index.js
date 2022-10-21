@@ -1,5 +1,4 @@
 require('module-alias/register');
-require('./db');
 
 const { IS_DEV } = require('@apiHelpers');
 const app = require('express')();

@@ -1,0 +1,59 @@
+@include md {
+  .section {
+    &-title {
+      $elem: &;
+
+      font-size: 30px/36px;
+
+      // &#{$elem}--uppercase {
+      //   font-size: 30px/36px;
+      // }
+
+      &#{$elem}--large {
+        font-size: 49px/56px;
+      }
+
+      &#{$elem}--underlined {
+        &:after {
+          width: 88px;
+        }
+      }
+    }
+  }
+
+  @include container(768, 12, 'tb');
+
+  .container {
+    $elem: '.col';
+
+    .col {
+      @include padding('* 12px');
+
+      &#{$elem} {
+        &--float,
+        &--tb_float {
+          float: left;
+        }
+
+        &--center,
+        &--tb_center {
+          @include margin('* auto');
+        }
+      }
+    }
+  }
+
+  .btn,
+  .form-input {
+    font-size: 16px;
+  }
+
+  .btn,
+  .form-row.form-row--text_wrap {
+    @include oneLineBlock(45px);
+  }
+
+  .btn {
+    line-height: 43px;
+  }
+}

@@ -8,17 +8,8 @@ const { IS_DEV, SERVER_PORT, CLIENT_PATH } = require('./helpers');
 // console.log(result);
 // console.log(result2);
 
-const {
-  VUE_APP_SERVER_PROTOCOL,
-  VUE_APP_SERVER_HOST,
-  VUE_APP_SERVER_URL,
-
-  DB_HOST,
-  DB_NAME,
-  DB_USER,
-  DB_PASSWORD,
-  DB_SALT,
-} = process.env;
+const { VUE_APP_SERVER_PROTOCOL, VUE_APP_SERVER_HOST, VUE_APP_SERVER_URL } =
+  process.env;
 const ROOT_PATH = IS_DEV ? 'public' : CLIENT_PATH;
 
 module.exports = {
@@ -34,15 +25,5 @@ module.exports = {
     HOST: VUE_APP_SERVER_HOST,
     PORT: SERVER_PORT,
     URL: VUE_APP_SERVER_URL,
-  },
-  db: {
-    HOST: DB_HOST,
-    NAME: DB_NAME,
-    USER: DB_USER,
-    PASSWORD: DB_PASSWORD,
-    SALT: DB_SALT,
-  },
-  mail: {
-    SUBJECT: 'Сообщение с сайта',
   },
 };

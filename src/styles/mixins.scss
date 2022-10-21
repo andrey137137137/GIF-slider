@@ -1,0 +1,182 @@
+@mixin breakpoint($value) {
+  $breakpoints: (
+    'md': 768px,
+    'lg': 1200px,
+    'xl': 1800px,
+  );
+
+  @media only screen and (min-width: map-get($breakpoints, $value)) {
+    @content;
+  }
+}
+
+@mixin md {
+  @include breakpoint('md') {
+    @content;
+  }
+}
+
+@mixin lg {
+  @include breakpoint('lg') {
+    @content;
+  }
+}
+
+@mixin xl {
+  @include breakpoint('xl') {
+    @content;
+  }
+}
+
+@mixin pixelPerfect($device, $page: '', $top: 0) {
+  #pixel_perfect {
+    $img: '';
+
+    position: absolute;
+    // top: -194px;
+    top: $top;
+    left: 0;
+    z-index: $zMax;
+    size: 100%;
+
+    @if $device == 'preloader' {
+      $img: 'night_preloader.gif';
+    } @else {
+      $img: '#{$device}_night_#{$page}.jpg';
+    }
+
+    background: url(../img/#{$img}) center top repeat-y;
+    opacity: 0.5;
+  }
+}
+
+@mixin fonts($fontFamily, $weight: normal, $style: normal) {
+  $rootPath: '../assets/fonts';
+
+  @font-face {
+    font-family: $fontFamily;
+    src: url('#{$rootPath}/#{$fontFamily}/#{$fontFamily}.eot');
+    src: url('#{$rootPath}/#{$fontFamily}/#{$fontFamily}.eot?#iefix')
+        format('embedded-opentype'),
+      url('#{$rootPath}/#{$fontFamily}/#{$fontFamily}.woff2') format('woff2'),
+      url('#{$rootPath}/#{$fontFamily}/#{$fontFamily}.woff') format('woff'),
+      url('#{$rootPath}/#{$fontFamily}/#{$fontFamily}.ttf') format('truetype');
+    font-weight: $weight;
+    font-style: $style;
+  }
+}
+
+@mixin cssProp($property, $value) {
+  #{$property}: unquote($value);
+}
+
+@mixin margin($value) {
+  // margin: unquote($value);
+  @include cssProp(margin, $value);
+}
+
+@mixin border($value) {
+  // border: unquote($value);
+  @include cssProp(border, $value);
+}
+
+@mixin padding($value) {
+  // padding: unquote($value);
+  @include cssProp(padding, $value);
+}
+
+@mixin size($value) {
+  // size: unquote($value);
+  @include cssProp(size, $value);
+}
+
+@mixin position($value) {
+  @include cssProp(position, $value);
+}
+
+@mixin oneLineBlock($height, $border: 0) {
+  height: $height;
+  line-height: $height - $border * 2;
+}
+
+@mixin percentsToCircleLength($percents, $max) {
+  // $percents: $value*100/$max;
+  stroke-dasharray: $percents * $max/100 $max;
+}
+
+@mixin percentsToOpacity($percents) {
+  // $percents: $value*100/$max;
+  opacity: $percents * 0.01;
+}
+
+@mixin svgBg($id) {
+  background: url('../svg/symbol/svg/sprite.symbol.svg##{$id}');
+}
+
+@mixin borderCornerColor($firstColor, $secondColor: $firstColor) {
+  @include border('* / * / * #{$firstColor} * #{$secondColor}');
+}
+
+@mixin borderPx($width, $height) {
+  $halfWidth: $width/2;
+
+  @include border(
+    '#{$height} #{$halfWidth} 0 #{$halfWidth} / solid / transparent * transparent *'
+  );
+}
+
+@mixin borderCornerHeight($height, $block: 'top_wrap') {
+  margin-top: -$height;
+
+  .#{$block}-corner_border {
+    border-top-width: $height;
+  }
+}
+
+@mixin widthToPercents($value, $total) {
+  $per: $value * 100%;
+  // $total: $total - 2 * $totalPadding;
+
+  width: calc(#{$per}/#{$total});
+}
+
+@mixin cols($count, $colWidth, $postfix, $totalWidth) {
+  $colClass: '.col';
+
+  @for $col from 1 through $count {
+    #{$colClass}#{$colClass}--#{$postfix}_#{$col} {
+      @include widthToPercents($col * $colWidth, $totalWidth);
+    }
+  }
+}
+
+@mixin container($maxWidth: 768, $padding: 12, $postfix: 'tb', $count: 12) {
+  $contentWidth: $maxWidth - 2 * $padding;
+  $colWidth: $contentWidth / $count;
+
+  .container {
+    $block: &;
+
+    max-width: #{$maxWidth}px;
+    @include padding('* #{$padding}px');
+
+    @include cols($count - 1, $colWidth, $postfix, $contentWidth);
+
+    @if $padding > 0 {
+      &#{$block}--full_width {
+        @include cols($count, $colWidth, $postfix, $maxWidth);
+      }
+    }
+  }
+}
+
+@mixin roboto($style: regular) {
+  @if $style == medium {
+    font-weight: 500;
+  }
+}
+
+@function svg($url, $color) {
+  $base-color: str-slice(inspect($color), 2);
+  @return unquote('url("' + $url + '?fill=%23' + $base-color + '")');
+}

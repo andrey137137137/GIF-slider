@@ -3,25 +3,47 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "vue-cli-service serve --open",
-    "serve": "vue-cli-service serve",
+    "start": "concurrently \"npm run server\" \"npm run client\"",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "client": "vue-cli-service serve --open",
+    "server": "nodemon server/index.js",
+    "testProd": "cross-env NODE_ENV=production npm run server",
+    "prod": "cross-env NODE_ENV=production node server/index.js"
   },
   "dependencies": {
+    "async": "^3.2.2",
+    "axios": "^0.24.0",
+    "body-parser": "^1.18.3",
     "core-js": "^3.6.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.16.4",
+    "formidable": "^1.2.6",
+    "morgan": "^1.10.0",
+    "postcss-cssnext": "^3.1.1",
+    "postcss-loader": "^3.0.0",
+    "postcss-short": "^5.0.0",
+    "postcss-short-border": "^4.0.0",
+    "postcss-short-text": "^1.1.0",
     "pug": "^3.0.2",
     "pug-plain-loader": "^1.1.0",
+    "sass": "^1.55.0",
+    "sass-loader": "^7.0.1",
+    "sass-resources-loader": "^2.2.4",
     "vue": "^2.6.11",
-    "vue2-dropzone": "^3.6.0"
+    "vue2-dropzone": "^3.6.0",
+    "module-alias": "^2.2.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.15",
     "@vue/cli-plugin-eslint": "~4.5.15",
     "@vue/cli-service": "~4.5.15",
     "babel-eslint": "^10.1.0",
+    "cors": "^2.8.5",
+    "errorhandler": "^1.5.1",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "nodemon": "^1.18.10",
     "vue-template-compiler": "^2.6.11"
   },
   "eslintConfig": {
@@ -42,5 +64,14 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "_moduleAliases": {
+    "@config": "api/config.js",
+    "@httpSt": "api/httpStatuses.js",
+    "@apiHelpers": "api/helpers.js",
+    "@letterTemplate": "api/letterTemplate.js",
+    "@contr": "server/controllers",
+    "@routes": "server/routes",
+    "@auth": "server/routes/auth.js"
+  }
 }

@@ -1,0 +1,48 @@
+@include lg {
+  body {
+    font-size: 16px;
+  }
+
+  .section {
+    &-title {
+      $elem: &;
+
+      font-size: 35px/41px;
+
+      // &#{$elem}--uppercase {
+      //   font-size: 35px/41px;
+      // }
+
+      &#{$elem}--large {
+        font-size: 63px/66px;
+      }
+
+      &#{$elem}--underlined {
+        &:after {
+          width: 89px;
+        }
+      }
+    }
+  }
+
+  @include container(1200, 0, 'ds');
+
+  .container {
+    $elem: '.col';
+
+    .col {
+      @include padding('* 10px');
+
+      &#{$elem}--ds {
+        &_float {
+          float: left;
+        }
+
+        &_center {
+          float: none;
+          @include margin('* auto');
+        }
+      }
+    }
+  }
+}
