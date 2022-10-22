@@ -2,10 +2,21 @@
 #app.slider
   .slider-main
   .list.slider-frames
-    .list-item.frame.slider-frame(v-for='(item, index) in items', :key='item')
-      a.frame-add_prev(@click.prevent='insertBeforeImage(index)', href='#') Insert before {{ item }}
-      .frame-img(:src='item', :alt='"Image " + item')
+    .list-item.frame.slider-frame(
+      v-for='(item, index) in items',
+      :key='item.name'
+    )
+      a.frame-add_prev(@click.prevent='insertBeforeImage(index)', href='#') Insert before {{ item.name }}
+      .frame-img(
+        :src='getImageName(item.name, item.ext)',
+        :alt='"Image " + getImageName(item.name, item.ext)'
+      )
     div
+      a(
+        style='display: block; text-align: center; font-size: 50px; line-height: 100px',
+        @click.prevent='refresh',
+        href='#'
+      ) RELOAD
       #drop-area.slider-frame_add_next(
         ref='dropArea',
         :class='dropAreaModifs',
@@ -79,16 +90,14 @@ export default {
     },
     getExt(fileName) {
       const LAST_SEPARATOR = fileName.lastIndexOf('.');
-      return fileName.slice(LAST_SEPARATOR + 1);
+      return fileName.slice(LAST_SEPARATOR);
     },
     uploadFile(file) {
       const EXT = this.getExt(file.name);
       const $vm = this;
       const form = new FormData();
-      this.addImage();
-      form.append('image', file, this.items[this.items.length - 1] + '.' + EXT);
-      // form.append('image', file, this.items[this.items.length - 1]);
-      // form.append('image', file);
+      this.addImage(EXT);
+      form.append('image', file, this.items[this.items.length - 1].name + EXT);
       axios.post(this.uploadHost + 'image/upload', form).then(() => {
         /* Готово. Информируем пользователя */
         $vm.progressDone();
@@ -111,18 +120,18 @@ export default {
       this.filesDone++;
       this.$refs.progressBar.value = (this.filesDone / this.filesToDo) * 100;
     },
-    getIdParts(id) {
-      return id.split(this.separator);
+    getIdParts(index) {
+      return this.items[index].name.split(this.separator);
     },
     insertBeforeImage(nextIndex) {
-      const idParts = this.getIdParts(this.items[nextIndex]);
+      const idParts = this.getIdParts(nextIndex);
       const COUNT_PARTS = idParts.length;
       const PREV_INDEX = nextIndex - 1;
       let postfix = this.firstIdIndex;
       let result = '';
 
       if (PREV_INDEX >= 0) {
-        const prevIdParts = this.getIdParts(this.items[PREV_INDEX]);
+        const prevIdParts = this.getIdParts(PREV_INDEX);
         const PREV_COUNT_PARTS = prevIdParts.length;
 
         if (COUNT_PARTS - PREV_COUNT_PARTS < 0) {
@@ -135,12 +144,36 @@ export default {
       }
 
       result += postfix;
-      this.items.splice(nextIndex, 0, result);
+      this.items.splice(nextIndex, 0, { name: result, ext: '' });
     },
-    addImage() {
+    addImage(ext) {
       this.lastTopID++;
-      this.items.push(this.lastTopID + '');
+      this.items.push({ name: this.lastTopID + '', ext });
     },
+    getImageName(name, ext) {
+      return name + ext;
+    },
+    refresh() {
+      const $vm = this;
+      axios.get(this.uploadHost + 'image/load').then(res => {
+        $vm.items = res.data;
+
+        if (!$vm.items.length) {
+          return;
+        }
+
+        const LAST_INDEX = $vm.items.length - 1;
+        const LAST_LOADED_TOP_ID = $vm.items[LAST_INDEX].name;
+        $vm.lastTopID = parseInt(LAST_LOADED_TOP_ID);
+
+        if ($vm.getIdParts(LAST_INDEX).length > 1) {
+          $vm.lastTopID--;
+        }
+      });
+    },
+  },
+  created() {
+    this.refresh();
   },
 };
 </script>

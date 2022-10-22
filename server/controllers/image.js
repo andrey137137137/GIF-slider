@@ -72,54 +72,68 @@ const upload = (req, res, dir = '', layer = -1) => {
   });
 };
 
-function getFiles(dirPath, callback) {
-  fs.readdir(dirPath, function (err, files) {
+function getFiles(dirPath, cb) {
+  if (!fs.existsSync(dirPath)) {
+    return cb(null, []);
+  }
+
+  fs.readdir(dirPath, (err, files) => {
     if (err) {
-      return callback(err);
+      return cb(err);
     }
 
-    var filePaths = [];
+    let filePaths = [];
 
     eachSeries(
       files,
-      function (fileName, eachCallback) {
+      (fileName, eachCB) => {
         var filePath = path.join(dirPath, fileName);
 
-        fs.stat(filePath, function (err, stat) {
-          if (err) return eachCallback(err);
+        fs.stat(filePath, (err, stat) => {
+          if (err) {
+            return eachCB(err);
+          }
 
           if (stat.isDirectory()) {
-            getFiles(filePath, function (err, subDirFiles) {
-              if (err) return eachCallback(err);
+            getFiles(filePath, (err, subDirFiles) => {
+              if (err) {
+                return eachCB(err);
+              }
 
               filePaths = filePaths.concat(subDirFiles);
-              eachCallback(null);
+              eachCB(null);
             });
           } else {
             // if (stat.isFile() && /\.js$/.test(filePath)) {
             // filePaths.push(filePath);
             const { name, ext } = path.parse(filePath);
-            // filePaths.push({ name, ext });
-            filePaths.push(name);
+            filePaths.push({ name, ext });
+            // filePaths.push(name);
             // }
 
-            eachCallback(null);
+            eachCB(null);
           }
         });
       },
-      function (err) {
-        callback(err, filePaths);
+      err => {
+        cb(err, filePaths);
       },
     );
   });
 }
 
 const load = (req, res) => {
-  getFiles(UPLOAD_PATH, function (err, files) {
-    if (files) {
-      files = files.sort((a, b) => parseInt(a) - parseInt(b));
+  getFiles(UPLOAD_PATH, (err, files) => {
+    if (err) {
+      res.status(ERROR).json({
+        message: `При чтении каталога произошла ошибка: ${err}`,
+      });
+      return;
     }
-    res.status(SUCCESS).json(err || files);
+    const sortedFiles = files.sort(
+      (a, b) => parseInt(a.name) - parseInt(b.name),
+    );
+    res.status(SUCCESS).json(sortedFiles);
   });
 };
 
