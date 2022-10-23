@@ -8,56 +8,30 @@
   .slider-main
   form.my-form(@submit.prevent='cancelFormSubmit')
     .list.slider-frames
-      .list-item.frame.slider-frame(
+      DropItem(
         v-for='(item, index) in items',
-        :key='item.name'
+        :key='item.name',
+        :handle='uploadFiles',
+        :index='index',
+        :name='item.name',
+        :ext='item.ext'
       )
-        label.button.frame-add_prev Insert before {{ item.name }}
-          input.fileElem(
-            type='file',
-            multiple,
-            @change.prevent='onFiles($event, index)',
-            accept='image/*'
-          )
-        img.frame-img(
-          style='width: 100px',
-          :src='"/upload/" + getImageName(item.name, item.ext)',
-          :alt='"Image " + getImageName(item.name, item.ext)'
-        )
-      .list-item.frame.slider-frame
-        #drop-area.slider-frame_add_next(
-          ref='dropArea',
-          :class='dropAreaModifs',
-          @dragenter.prevent.stop='onDragenter',
-          @dragover.prevent.stop='onDragover',
-          @dragleave.prevent.stop='onDragleave',
-          @drop.prevent.stop='onDrop($event)'
-        )
-          p Загрузите изображения с помощью диалога выбора файлов или перетащив нужные изображения в выделенную область
-          input#fileElem.fileElem(
-            type='file',
-            multiple,
-            @change.prevent='onFiles($event)',
-            accept='image/*'
-          )
-          label.button(for='fileElem') Выбрать изображения
-          progress#progress-bar(ref='progressBar', max=100, value=0)
-          #gallery
-            img(ref='preview')
+      DropItem(:handle='uploadFiles')
 </template>
 
 <script>
 import axios from 'axios';
 import { SERVER_BASE_URL } from '@helpers';
+import DropItem from '@components/DropItem';
 
 export default {
   name: 'App',
+  components: {
+    DropItem,
+  },
   data() {
     return {
       uploadHost: SERVER_BASE_URL,
-      isHighlighted: false,
-      filesDone: 0,
-      filesToDo: 0,
       items: [],
       lastTopID: 0,
       separator: '.',
@@ -66,57 +40,16 @@ export default {
     };
   },
   computed: {
-    dropAreaModifs() {
-      return {
-        highlight: this.isHighlighted,
-      };
-    },
     isAddingItem() {
       return this.usingIndex < 0;
     },
   },
   methods: {
-    onDragenter() {
-      this.isHighlighted = true;
-    },
-    onDragover() {
-      this.isHighlighted = true;
-    },
-    onDragleave() {
-      this.isHighlighted = false;
-    },
-    onDrop(e, index = -1) {
-      this.isHighlighted = false;
-      this.usingIndex = index;
-      this.uploadFiles(e.dataTransfer.files);
-    },
-    onFiles(e, index = -1) {
-      this.usingIndex = index;
-      this.uploadFiles(e.target.files);
-    },
     cancelFormSubmit() {},
-    uploadFiles(files) {
+    uploadFiles(files, index) {
+      this.usingIndex = index;
       const filesList = [...files];
-      this.initializeProgress(filesList.length); // <- Добавили эту строку
       filesList.forEach(this.uploadFile);
-      filesList.forEach(this.previewFile);
-    },
-    previewFile(file) {
-      const $vm = this;
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => {
-        $vm.$refs.preview.src = reader.result;
-      };
-    },
-    initializeProgress(numfiles) {
-      this.$refs.progressBar.value = 0;
-      this.filesDone = 0;
-      this.filesToDo = numfiles;
-    },
-    progressDone() {
-      this.filesDone++;
-      this.$refs.progressBar.value = (this.filesDone / this.filesToDo) * 100;
     },
     getIdParts(index) {
       return this.items[index].name.split(this.separator);
@@ -164,7 +97,6 @@ export default {
         } else {
           $vm.insertBeforeItem(TEMP_ID, EXT);
         }
-        $vm.progressDone();
       });
     },
     getExt(fileName) {
@@ -175,15 +107,13 @@ export default {
       this.lastTopID = lastTopID;
       this.items.push({ name: this.lastTopID + '', ext });
     },
-    getImageName(name, ext) {
-      return name + ext;
-    },
     refresh() {
       const $vm = this;
       axios.get(this.uploadHost + 'image/load').then(res => {
         $vm.items = res.data;
 
         if (!$vm.items.length) {
+          $vm.lastTopID = 0;
           return;
         }
 

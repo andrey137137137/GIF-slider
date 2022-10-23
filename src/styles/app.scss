@@ -5,15 +5,26 @@
 @import 'layout/import';
 @import 'adaptive/import';
 
-#drop-area {
+.list {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+.frame {
+  &-img {
+    display: block;
+    max-width: 200px;
+  }
+}
+.drop_area {
   border: 2px dashed #ccc;
   border-radius: 20px;
-  width: 480px;
   font-family: sans-serif;
-  margin: 100px auto;
+  margin: 3px auto;
   padding: 20px;
 }
-#drop-area.highlight {
+.drop_area.highlight {
   border-color: purple;
 }
 p {
@@ -32,7 +43,7 @@ p {
   vertical-align: middle;
 }
 .button {
-  display: inline-block;
+  display: block;
   padding: 10px;
   background: #ccc;
   cursor: pointer;
@@ -42,7 +53,7 @@ p {
 .button:hover {
   background: #ddd;
 }
-.fileElem {
+.file_elem {
   display: none;
 }
 
