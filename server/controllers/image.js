@@ -139,9 +139,7 @@ const load = (req, res) => {
 
 const remove = (res, imageName, dir = '', layer = -1, cb = false) => {
   setUploadPath(dir, layer);
-
   const IMAGE_PATH = path.join(uploadPath, imageName);
-  console.log(IMAGE_PATH);
 
   if (cb !== false) {
     return fs.unlink(IMAGE_PATH, cb);

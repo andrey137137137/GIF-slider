@@ -14,9 +14,10 @@
         :handle='uploadFiles',
         :index='index',
         :name='item.name',
-        :ext='item.ext'
+        :ext='item.ext',
+        :items='items'
       )
-      DropItem(:handle='uploadFiles')
+      DropItem(:handle='uploadFiles', :items='items')
 </template>
 
 <script>
@@ -31,7 +32,7 @@ export default {
   },
   data() {
     return {
-      uploadHost: SERVER_BASE_URL,
+      uploadHost: SERVER_BASE_URL + 'image',
       items: [],
       lastTopID: 0,
       separator: '.',
@@ -90,7 +91,7 @@ export default {
       const form = new FormData();
 
       form.append('image', file, TEMP_ID + EXT);
-      axios.post(this.uploadHost + 'image/upload', form).then(() => {
+      axios.post(this.uploadHost, form).then(() => {
         /* Готово. Информируем пользователя */
         if ($vm.isAddingItem) {
           $vm.addItem(TEMP_ID, EXT);
@@ -109,7 +110,7 @@ export default {
     },
     refresh() {
       const $vm = this;
-      axios.get(this.uploadHost + 'image/load').then(res => {
+      axios.get(this.uploadHost).then(res => {
         $vm.items = res.data;
 
         if (!$vm.items.length) {

@@ -20,15 +20,26 @@
     :alt='"Image " + imageName'
   )
   label.button(:for='inputID') {{ labelText }}
+  div(
+    v-if='!isAddingItem',
+    style='display: flex; justify-content: space-between'
+  )
+    CtrlButton(title='<')
+    CtrlButton(:title='"DELETE " + name + "!"', :handle='onDelete')
+    CtrlButton(title='>')
 </template>
 
 <script>
+import axios from 'axios';
+import { SERVER_BASE_URL } from '@helpers';
+import CtrlButton from '@components/CtrlButton';
+
 export default {
   name: 'DropItem',
+  components: { CtrlButton },
   props: {
+    items: { type: Array, required: true },
     index: { type: Number, default: -1 },
-    name: { type: String, default: '' },
-    ext: { type: String, default: '' },
     handle: {
       type: Function,
       default: files => {
@@ -39,10 +50,17 @@ export default {
   },
   data() {
     return {
+      uploadHost: SERVER_BASE_URL + 'image',
       isHighlighted: false,
     };
   },
   computed: {
+    name() {
+      return this.getItemProp('name');
+    },
+    ext() {
+      return this.getItemProp('ext');
+    },
     dropAreaModifs() {
       return {
         highlight: this.isHighlighted,
@@ -68,6 +86,12 @@ export default {
     },
   },
   methods: {
+    getItemProp(propName) {
+      if (this.isAddingItem) {
+        return '';
+      }
+      return this.items[this.index][propName];
+    },
     onDragenter() {
       this.isHighlighted = true;
     },
@@ -83,6 +107,14 @@ export default {
     },
     onFiles(e) {
       this.handle(e.target.files, this.index);
+    },
+    onDelete() {
+      if (confirm('To delete ' + this.imageName + '?')) {
+        const $vm = this;
+        axios.delete($vm.uploadHost + '/' + $vm.imageName).then(() => {
+          $vm.items.splice($vm.index, 1);
+        });
+      }
     },
   },
 };
