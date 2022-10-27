@@ -5,6 +5,11 @@
 // @import 'layout/import';
 // @import 'adaptive/import';
 
+.slider-main {
+  position: absolute;
+  background-color: white;
+  min-height: 100%;
+}
 .list {
   display: flex;
   justify-content: space-between;

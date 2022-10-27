@@ -137,6 +137,19 @@ const load = (req, res) => {
   });
 };
 
+const rename = (res, oldName, newName, dir = '', layer = -1) => {
+  setUploadPath(dir, layer);
+  const OLD_PATH = path.join(uploadPath, oldName);
+  const NEW_PATH = path.join(uploadPath, newName);
+
+  fs.rename(OLD_PATH, NEW_PATH, err => {
+    sendMessage(res, err, {
+      success: 'Изображение успешно переименовано',
+      error: 'Не удалось переименовать изображение',
+    });
+  });
+};
+
 const remove = (res, imageName, dir = '', layer = -1, cb = false) => {
   setUploadPath(dir, layer);
   const IMAGE_PATH = path.join(uploadPath, imageName);
@@ -221,6 +234,7 @@ module.exports = {
   getTempPath,
   upload,
   load,
+  rename,
   remove,
   isAnyBreakpointImage,
   deleteBreakpointImages,

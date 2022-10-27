@@ -5,24 +5,22 @@
     @click.prevent='refresh',
     href='#'
   ) RELOAD
-  .slider-main
   form.my-form(@submit.prevent='cancelFormSubmit')
     .list.slider-frames
       DropItem(
         v-for='(item, index) in items',
         :key='item.name',
-        :handle='uploadFiles',
         :index='index',
-        :name='item.name',
-        :ext='item.ext',
         :items='items'
       )
-      DropItem(:handle='uploadFiles', :items='items')
+      DropItem(:items='items')
+  .slider-main(v-show='toShowImg')
+    img(style='display: block', :src='lightBoxSrc')
 </template>
 
 <script>
 import axios from 'axios';
-import { SERVER_BASE_URL } from '@helpers';
+import dropMixin from '@/dropMixin';
 import DropItem from '@components/DropItem';
 
 export default {
@@ -30,79 +28,37 @@ export default {
   components: {
     DropItem,
   },
+  mixins: [dropMixin],
   data() {
     return {
-      uploadHost: SERVER_BASE_URL + 'image',
       items: [],
+      showIndex: -1,
       lastTopID: 0,
-      separator: '.',
-      firstIdIndex: '1',
-      usingIndex: -1,
     };
   },
   computed: {
-    isAddingItem() {
-      return this.usingIndex < 0;
+    toShowImg() {
+      return this.showIndex >= 0;
+    },
+    lightBoxSrc() {
+      if (!this.toShowImg) {
+        return '';
+      }
+      const { name, ext } = this.items[this.showIndex];
+      return '/upload/' + name + ext;
     },
   },
   methods: {
-    cancelFormSubmit() {},
-    uploadFiles(files, index) {
-      this.usingIndex = index;
-      const filesList = [...files];
-      filesList.forEach(this.uploadFile);
+    cancelFormSubmit() {
+      return false;
     },
-    getIdParts(index) {
-      return this.items[index].name.split(this.separator);
+    insertBeforeItem(name, ext, index) {
+      this.items.splice(index, 0, { name, ext });
     },
-    calcBeforeID() {
-      const idParts = this.getIdParts(this.usingIndex);
-      const COUNT_PARTS = idParts.length;
-      const PREV_INDEX = this.usingIndex - 1;
-      let postfix = this.firstIdIndex;
-      let result = '';
-
-      if (PREV_INDEX >= 0) {
-        const prevIdParts = this.getIdParts(PREV_INDEX);
-        const PREV_COUNT_PARTS = prevIdParts.length;
-
-        if (COUNT_PARTS - PREV_COUNT_PARTS < 0) {
-          postfix = parseInt(prevIdParts[PREV_COUNT_PARTS - 1]) + 1;
-        }
-      }
-
-      for (let index = 0; index < idParts.length; index++) {
-        result += idParts[index] + this.separator;
-      }
-
-      result += postfix;
-      return result;
-    },
-    insertBeforeItem(name, ext) {
-      this.items.splice(this.usingIndex, 0, { name, ext });
-    },
-    uploadFile(file) {
-      const EXT = this.getExt(file.name);
-      const TEMP_ID = this.isAddingItem
-        ? this.lastTopID + 1
-        : this.calcBeforeID();
-
-      const $vm = this;
-      const form = new FormData();
-
-      form.append('image', file, TEMP_ID + EXT);
-      axios.post(this.uploadHost, form).then(() => {
-        /* Готово. Информируем пользователя */
-        if ($vm.isAddingItem) {
-          $vm.addItem(TEMP_ID, EXT);
-        } else {
-          $vm.insertBeforeItem(TEMP_ID, EXT);
-        }
-      });
-    },
-    getExt(fileName) {
-      const LAST_SEPARATOR = fileName.lastIndexOf('.');
-      return fileName.slice(LAST_SEPARATOR);
+    replace(index, ext) {
+      const tempArray = this.items;
+      tempArray[index].ext = ext;
+      this.items = tempArray;
     },
     addItem(lastTopID, ext) {
       this.lastTopID = lastTopID;
