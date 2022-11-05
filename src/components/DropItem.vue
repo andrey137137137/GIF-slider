@@ -9,20 +9,8 @@ b-col
     @dragleave.prevent.stop='onDragleave',
     @drop.prevent.stop='onDrop($event)'
   )
-    input.file_elem(
-      :id='uploadID',
-      type='file',
-      multiple,
-      @change.prevent='onFiles($event)',
-      accept='image/*'
-    )
-    input.file_elem(
-      :id='replaceID',
-      type='file',
-      multiple,
-      @change.prevent='onReplace($event)',
-      accept='image/*'
-    )
+    FileInput(:id='uploadID', @upload='onFiles')
+    FileInput(:id='replaceID', @upload='onReplace')
     b-aspect(v-if='!isAddingItem', aspect='16/9')
       b-card-img-lazy(
         :src='"/upload/" + imageName',
@@ -36,10 +24,13 @@ b-col
         CtrlButton(variant='info', title='<', :handle='onRenameToPrev')
       b-button-group.mx-1
         //- CtrlButton(:variant='' :title='"Replace " + name', :handle='onReplace')
-        b-button(:for='replaceID', tag='label')
-          b-icon(icon='cloud-upload', aria-hidden='true')
-        CtrlButton(variant='danger', :handle='onDelete')
-          b-icon(icon='x-circle', scale='2', variant='white')
+        CtrlButton(:for='replaceID', tag='label', icon='cloud-upload')
+        CtrlButton(
+          icon='x-circle',
+          scale='2',
+          variant='danger',
+          :handle='onDelete'
+        )
       b-button-group.mx-1(v-if='isNotLast')
         CtrlButton(variant='info', title='>', :handle='onRenameToNext')
 </template>
@@ -47,11 +38,12 @@ b-col
 <script>
 import axios from 'axios';
 import dropMixin from '@/dropMixin';
+import FileInput from '@components/FileInput';
 import CtrlButton from '@components/CtrlButton';
 
 export default {
   name: 'DropItem',
-  components: { CtrlButton },
+  components: { FileInput, CtrlButton },
   mixins: [dropMixin],
   props: {
     items: { type: Array, required: true },
@@ -127,10 +119,10 @@ export default {
       this.uploadFiles(e.target.files);
     },
     onRenameToPrev() {
-      this.onRenameFile(-1);
+      this.renameFile(-1);
     },
     onRenameToNext() {
-      this.onRenameFile();
+      this.renameFile();
     },
     onReplace(e) {
       this.uploadFile(e.target.files[0], true);
@@ -178,10 +170,13 @@ export default {
         }
       });
     },
-    onRenameFile(dir = 1) {
+    renameFile(dir = 1) {
       const $vm = this;
       const STEP = dir > 0 ? 2 : -1;
-      const TEMP_ID = this.calcBeforeID(this.index + STEP);
+      const NEXT_NEXT_INDEX = this.index + STEP;
+      const TEMP_ID = this.items[NEXT_NEXT_INDEX]
+        ? this.calcBeforeID(NEXT_NEXT_INDEX)
+        : this.$parent.$data.lastTopID + 1;
       axios
         .get(this.uploadHost + '/' + this.imageName + '/' + TEMP_ID + this.ext)
         .then(() => {
