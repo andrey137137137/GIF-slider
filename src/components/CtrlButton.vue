@@ -1,24 +1,21 @@
 <template lang="pug">
-button.btn(type='button', :class='classes', @click.prepare='handle') {{ title }}
+b-button(:class='classes', :variant='variant', @click.prepare='handle') {{ title }}
+  slot
 </template>
 
 <script>
 export default {
   name: 'CtrlButton',
   props: {
-    title: {
-      type: String,
-      required: true,
-    },
+    variant: { type: String, default: 'secondary' },
+    title: { type: String, default: '' },
     handle: {
       type: Function,
       default: () => {
         return false;
       },
     },
-    classes: {
-      default: '',
-    },
+    classes: { default: '' },
   },
 };
 </script>

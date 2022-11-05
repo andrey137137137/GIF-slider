@@ -1,41 +1,47 @@
 <template lang="pug">
-.list-item.frame.slider-frame.drop_area(
-  ref='dropArea',
-  :class='dropAreaModifs',
-  @dragenter.prevent.stop='onDragenter',
-  @dragover.prevent.stop='onDragover',
-  @dragleave.prevent.stop='onDragleave',
-  @drop.prevent.stop='onDrop($event)'
-)
-  input.file_elem(
-    :id='uploadID',
-    type='file',
-    multiple,
-    @change.prevent='onFiles($event)',
-    accept='image/*'
+b-col
+  b-card.list-item.frame.slider-frame.drop_area(
+    ref='dropArea',
+    :class='dropAreaModifs',
+    tag='article',
+    @dragenter.prevent.stop='onDragenter',
+    @dragover.prevent.stop='onDragover',
+    @dragleave.prevent.stop='onDragleave',
+    @drop.prevent.stop='onDrop($event)'
   )
-  input.file_elem(
-    :id='replaceID',
-    type='file',
-    multiple,
-    @change.prevent='onReplace($event)',
-    accept='image/*'
-  )
-  img.frame-img(
-    v-if='!isAddingItem',
-    :src='"/upload/" + imageName',
-    :alt='"Image " + imageName'
-  )
-  label.button(:for='uploadID') {{ labelText }}
-  div(
-    v-if='!isAddingItem',
-    style='display: flex; justify-content: space-between'
-  )
-    CtrlButton(v-if='isNotFirst', title='<', :handle='onRenameToPrev')
-    //- CtrlButton(:title='"Replace " + name', :handle='onReplace')
-    label.button(:for='replaceID') Replace {{ name }}
-    CtrlButton(:title='"DELETE " + name + "!"', :handle='onDelete')
-    CtrlButton(v-if='isNotLast', title='>', :handle='onRenameToNext')
+    input.file_elem(
+      :id='uploadID',
+      type='file',
+      multiple,
+      @change.prevent='onFiles($event)',
+      accept='image/*'
+    )
+    input.file_elem(
+      :id='replaceID',
+      type='file',
+      multiple,
+      @change.prevent='onReplace($event)',
+      accept='image/*'
+    )
+    b-aspect(v-if='!isAddingItem', aspect='16/9')
+      b-card-img-lazy(
+        :src='"/upload/" + imageName',
+        :alt='"Image " + imageName'
+      )
+    label.button(:for='uploadID')
+      b-icon(:icon='labelIcon', aria-hidden='true')
+      | {{ labelText }}
+    b-button-toolbar(v-if='!isAddingItem')
+      b-button-group.mx-1(v-if='isNotFirst')
+        CtrlButton(variant='info', title='<', :handle='onRenameToPrev')
+      b-button-group.mx-1
+        //- CtrlButton(:variant='' :title='"Replace " + name', :handle='onReplace')
+        b-button(:for='replaceID', tag='label')
+          b-icon(icon='cloud-upload', aria-hidden='true')
+        CtrlButton(variant='danger', :handle='onDelete')
+          b-icon(icon='x-circle', scale='2', variant='white')
+      b-button-group.mx-1(v-if='isNotLast')
+        CtrlButton(variant='info', title='>', :handle='onRenameToNext')
 </template>
 
 <script>
@@ -83,10 +89,11 @@ export default {
     replaceID() {
       return this.getLabelAttrFor('replace');
     },
+    labelIcon() {
+      return this.isAddingItem ? 'cloud-upload' : 'arrow-bar-right';
+    },
     labelText() {
-      return this.isAddingItem
-        ? 'Выбрать изображения'
-        : 'Insert before ' + this.name;
+      return this.isAddingItem ? '' : ' ' + this.name;
     },
     imageName() {
       return this.name + this.ext;

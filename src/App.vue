@@ -1,12 +1,14 @@
 <template lang="pug">
 #app.slider
-  a(
+  b-button(
     style='display: block; text-align: center; font-size: 50px; line-height: 100px',
+    title='RELOAD',
     @click.prevent='refresh',
     href='#'
-  ) RELOAD
+  )
+    b-icon(icon='cloud-download', aria-hidden='true')
   form.my-form(@submit.prevent='cancelFormSubmit')
-    .list.slider-frames
+    b-container.list.slider-frames
       DropItem(
         v-for='(item, index) in items',
         :key='item.name',
