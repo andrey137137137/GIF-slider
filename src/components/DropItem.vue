@@ -1,12 +1,12 @@
 <template lang="pug">
-b-col
+b-col(:style='styles', @dragstart='onDragStart($event)')
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
     :class='dropAreaModifs',
     tag='article',
-    @dragenter.prevent.stop='onDragenter',
-    @dragover.prevent.stop='onDragover',
-    @dragleave.prevent.stop='onDragleave',
+    @dragenter.prevent.stop='onDragEnter',
+    @dragover.prevent.stop='onDragOver',
+    @dragleave.prevent.stop='onDragLeave',
     @drop.prevent.stop='onDrop($event)'
   )
     FileInput(:id='uploadID', @upload='onFiles')
@@ -51,10 +51,16 @@ export default {
   },
   data() {
     return {
+      isTransporting: false,
       isHighlighted: false,
+      dataTransferAttrName: 'nameID',
+      dataTransferAttrExt: 'ext',
     };
   },
   computed: {
+    styles() {
+      return this.isTransporting ? 'position: absolute' : '';
+    },
     isNotFirst() {
       return this.index > 0;
     },
@@ -101,18 +107,44 @@ export default {
       }
       return this.items[this.index][propName];
     },
-    onDragenter() {
+    getDtAttrs(dt) {
+      return {
+        name: dt.getData(this.dataTransferAttrName),
+        ext: dt.getData(this.dataTransferAttrExt),
+      };
+    },
+    onDragStart(e) {
+      // this.isTransporting = true;
+      e.dataTransfer.dropEffect = 'move';
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData(this.dataTransferAttrName, this.name);
+      e.dataTransfer.setData(this.dataTransferAttrExt, this.ext);
+    },
+    onDragEnd() {
+      this.isTransporting = false;
+    },
+    onDragEnter() {
       this.isHighlighted = true;
     },
-    onDragover() {
+    onDragOver() {
       this.isHighlighted = true;
     },
-    onDragleave() {
+    onDragLeave() {
       this.isHighlighted = false;
     },
     onDrop(e) {
-      console.log(e.dataTransfer);
+      const { name, ext } = this.getDtAttrs(e.dataTransfer);
+      console.log(this.name);
+      console.log(name);
       this.isHighlighted = false;
+
+      if (name) {
+        if (this.name != name) {
+          this.renameFile({ name, ext });
+        }
+        return;
+      }
+
       this.uploadFiles(e.dataTransfer.files);
     },
     onFiles(e) {
@@ -139,46 +171,41 @@ export default {
       const LAST_SEPARATOR = fileName.lastIndexOf('.');
       return fileName.slice(LAST_SEPARATOR);
     },
+    getTempID(index = -1) {
+      const COND = index < 0 ? !this.isAddingItem : this.items[index];
+      return COND ? this.calcBeforeID(index) : this.$parent.$data.lastTopID + 1;
+    },
     uploadFiles(files) {
       const filesList = [...files];
       filesList.forEach(this.uploadFile);
     },
     uploadFile(file, isReplacing = false) {
-      const EXT = this.getExt(file.name);
-      let tempID;
-
-      if (isReplacing) {
-        tempID = this.name;
-      } else {
-        tempID = this.isAddingItem
-          ? this.$parent.$data.lastTopID + 1
-          : this.calcBeforeID();
-      }
-
       const $vm = this;
+      const EXT = this.getExt(file.name);
+      const TEMP_ID = isReplacing ? this.name : this.getTempID();
       const form = new FormData();
-
-      form.append('image', file, tempID + EXT);
+      form.append('image', file, TEMP_ID + EXT);
       axios.post(this.uploadHost, form).then(() => {
         /* Готово. Информируем пользователя */
         if (isReplacing) {
           $vm.$parent.replace($vm.index, EXT);
         } else if ($vm.isAddingItem) {
-          $vm.$parent.addItem(tempID, EXT);
+          $vm.$parent.addItem(TEMP_ID, EXT);
         } else {
-          $vm.$parent.insertBeforeItem(tempID, EXT, $vm.index);
+          $vm.$parent.insertBeforeItem(TEMP_ID, EXT, $vm.index);
         }
       });
     },
-    renameFile(dir = 1) {
+    renameFile(objOrDir = 1) {
       const $vm = this;
-      const STEP = dir > 0 ? 2 : -1;
-      const NEXT_NEXT_INDEX = this.index + STEP;
-      const TEMP_ID = this.items[NEXT_NEXT_INDEX]
-        ? this.calcBeforeID(NEXT_NEXT_INDEX)
-        : this.$parent.$data.lastTopID + 1;
+      const IS_TRANSPORTED = !Number.isInteger(objOrDir);
+      const STEP = !IS_TRANSPORTED && objOrDir > 0 ? 2 : -1;
+      const NEW_INDEX = IS_TRANSPORTED ? -1 : this.index + STEP;
+      const EXT = IS_TRANSPORTED ? objOrDir.ext : this.ext;
+      const IMAGE_NAME = IS_TRANSPORTED ? objOrDir.name + EXT : this.imageName;
+      const TEMP_ID = this.getTempID(NEW_INDEX);
       axios
-        .get(this.uploadHost + '/' + this.imageName + '/' + TEMP_ID + this.ext)
+        .get(this.uploadHost + '/' + IMAGE_NAME + '/' + TEMP_ID + EXT)
         .then(() => {
           $vm.$parent.refresh();
         });
