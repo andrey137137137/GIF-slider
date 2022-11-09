@@ -1,5 +1,5 @@
 <template lang="pug">
-b-col(:style='styles', @dragstart='onDragStart($event)')
+b-col(@dragstart='onDragStart($event)')
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
     :class='dropAreaModifs',
@@ -51,16 +51,12 @@ export default {
   },
   data() {
     return {
-      isTransporting: false,
       isHighlighted: false,
       dataTransferAttrName: 'nameID',
       dataTransferAttrExt: 'ext',
     };
   },
   computed: {
-    styles() {
-      return this.isTransporting ? 'position: absolute' : '';
-    },
     isNotFirst() {
       return this.index > 0;
     },
@@ -107,18 +103,15 @@ export default {
       }
       return this.items[this.index][propName];
     },
-    getDtAttrs(dt) {
-      return {
-        name: dt.getData(this.dataTransferAttrName),
-        ext: dt.getData(this.dataTransferAttrExt),
-      };
+    compareDroppingFile(index, name) {
+      return this.items[index - 1].name == name;
     },
     onDragStart(e) {
-      // this.isTransporting = true;
-      e.dataTransfer.dropEffect = 'move';
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData(this.dataTransferAttrName, this.name);
-      e.dataTransfer.setData(this.dataTransferAttrExt, this.ext);
+      const dt = e.dataTransfer;
+      dt.dropEffect = 'move';
+      dt.effectAllowed = 'move';
+      dt.setData(this.dataTransferAttrName, this.name);
+      dt.setData(this.dataTransferAttrExt, this.ext);
     },
     onDragEnd() {
       this.isTransporting = false;
@@ -133,19 +126,32 @@ export default {
       this.isHighlighted = false;
     },
     onDrop(e) {
-      const { name, ext } = this.getDtAttrs(e.dataTransfer);
-      console.log(this.name);
-      console.log(name);
+      const dt = e.dataTransfer;
+      const DT_NAME = dt.getData(this.dataTransferAttrName);
+      console.log('Drop targer: ' + this.name);
+      console.log('Dropping:    ' + DT_NAME);
       this.isHighlighted = false;
 
-      if (name) {
-        if (this.name != name) {
-          this.renameFile({ name, ext });
+      if (DT_NAME) {
+        if (
+          this.isAddingItem &&
+          this.compareDroppingFile(this.items.length, DT_NAME)
+        ) {
+          return;
+        }
+        if (this.index > 0 && this.compareDroppingFile(this.index, DT_NAME)) {
+          return;
+        }
+        if (this.name != DT_NAME) {
+          this.renameFile({
+            name: DT_NAME,
+            ext: dt.getData(this.dataTransferAttrExt),
+          });
         }
         return;
       }
 
-      this.uploadFiles(e.dataTransfer.files);
+      this.uploadFiles(dt.files);
     },
     onFiles(e) {
       this.uploadFiles(e.target.files);
