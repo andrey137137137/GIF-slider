@@ -1,5 +1,5 @@
 <template lang="pug">
-b-col(@dragstart='onDragStart($event)')
+b-col(cols='6', @dragstart='onDragStart($event)')
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
     :class='dropAreaModifs',
