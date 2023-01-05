@@ -7,8 +7,16 @@
     href='#'
   )
     b-icon(icon='cloud-download', aria-hidden='true')
+    | {{ pos }}
   form.my-form(@submit.prevent='cancelFormSubmit')
-    b-container.list.slider-frames
+    //- b-container.list.slider-frames(fluid, @wheel.prevent='wheel')
+    //- b-container.d-flex.flex-nowrap.list.slider-frames(@wheel.prevent='wheel')
+    RecycleScroller.scroller(
+      :items='list',
+      :item-size='32',
+      key-field='id',
+      v-slot='{ item }'
+    )
       DropItem(
         v-for='(item, index) in items',
         :key='item.name',
@@ -36,6 +44,7 @@ export default {
       items: [],
       showIndex: -1,
       lastTopID: 0,
+      pos: 'Крутите колесо!',
     };
   },
   computed: {
@@ -51,6 +60,9 @@ export default {
     },
   },
   methods: {
+    wheel(e) {
+      this.pos = e.deltaY;
+    },
     cancelFormSubmit() {
       return false;
     },
