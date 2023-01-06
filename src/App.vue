@@ -7,28 +7,30 @@
     href='#'
   )
     b-icon(icon='cloud-download', aria-hidden='true')
-    | {{ pos }}
   form.my-form(@submit.prevent='cancelFormSubmit')
-    //- b-container.list.slider-frames(fluid, @wheel.prevent='wheel')
-    //- b-container.d-flex.flex-nowrap.list.slider-frames(@wheel.prevent='wheel')
-    RecycleScroller.scroller(
-      :items='list',
-      :item-size='32',
-      key-field='id',
-      v-slot='{ item }'
+    //- VueSlickCarousel(v-bind='settings')
+    b-container.d-flex.flex-nowrap.align-items-center.list.slider-frames(
+      style='overflow-x: scroll',
+      ref='container',
+      @wheel.prevent='onWheel'
     )
       DropItem(
         v-for='(item, index) in items',
         :key='item.name',
         :index='index',
-        :items='items'
+        :items='items',
+        ref='items'
       )
-      DropItem(:items='items')
+    DropItem(:items='items')
   .slider-main(v-show='toShowImg')
     img(style='display: block', :src='lightBoxSrc')
 </template>
 
 <script>
+import VueSlickCarousel from 'vue-slick-carousel';
+import 'vue-slick-carousel/dist/vue-slick-carousel.css';
+// optional style for arrows & dots
+import 'vue-slick-carousel/dist/vue-slick-carousel-theme.css';
 import axios from 'axios';
 import dropMixin from '@/dropMixin';
 import DropItem from '@components/DropItem';
@@ -36,6 +38,7 @@ import DropItem from '@components/DropItem';
 export default {
   name: 'App',
   components: {
+    VueSlickCarousel,
     DropItem,
   },
   mixins: [dropMixin],
@@ -44,7 +47,17 @@ export default {
       items: [],
       showIndex: -1,
       lastTopID: 0,
-      pos: 'Крутите колесо!',
+      settings: {
+        lazyLoad: 'ondemand',
+        dots: true,
+        infinite: false,
+        initialSlide: 2,
+        speed: 500,
+        slidesToShow: 3,
+        slidesToScroll: 1,
+        swipeToSlide: true,
+      },
+      containerOuterWidth: 0,
     };
   },
   computed: {
@@ -60,8 +73,19 @@ export default {
     },
   },
   methods: {
-    wheel(e) {
-      this.pos = e.deltaY;
+    onWheel(e) {
+      // var containerOuterWidth = $('.container').outerWidth(); // узнаем ширину контейнера (width + padding)
+
+      // var itemOuterWidth = $(this).outerWidth(); // узнаем ширину текущего элемента (width + padding)
+      // var itemOffsetLeft = $(this).offset().left; // узнаем значение отступа слева в контейнере у текущего элемента
+      // var containerScrollLeft = $('.container').scrollLeft(); // узнаем текущее значение скролла
+
+      // var positionCetner = containerOuterWidth / 2 - itemOuterWidth / 2; // рассчитываем позицию центра
+
+      // var scrollLeftUpd = containerScrollLeft + itemOffsetLeft - positionCetner; // рассчитываем положение скролла относительно разницы отступа элемента и центра контейнера
+
+      // анимируем
+      this.$refs.container.scrollLeft += e.deltaY;
     },
     cancelFormSubmit() {
       return false;
