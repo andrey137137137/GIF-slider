@@ -8,9 +8,16 @@
   )
     b-icon(icon='cloud-download', aria-hidden='true')
   form.my-form(@submit.prevent='cancelFormSubmit')
-    b-form-input(v-model='scale', type='range', min='2', max='12')
-    //- VueSlickCarousel(v-bind='settings')
-    b-container.d-flex.flex-nowrap.align-items-center.list.slider-frames(
+    b-button-group.d-flex
+      CtrlButton(variant='info', title='-', :handle='onShrinkScale')
+      b-form-input(
+        v-model='scale',
+        type='range',
+        :min='minScale',
+        :max='maxScale'
+      )
+      CtrlButton(variant='info', title='+', :handle='onGrowScale')
+    b-container#container.d-flex.flex-nowrap.align-items-center.justify-content-start.list.slider-frames(
       :style='containerStyle',
       ref='container',
       @wheel.prevent='onWheel'
@@ -29,10 +36,6 @@
 </template>
 
 <script>
-import VueSlickCarousel from 'vue-slick-carousel';
-import 'vue-slick-carousel/dist/vue-slick-carousel.css';
-// optional style for arrows & dots
-import 'vue-slick-carousel/dist/vue-slick-carousel-theme.css';
 import axios from 'axios';
 import dropMixin from '@/dropMixin';
 import DropItem from '@components/DropItem';
@@ -41,7 +44,6 @@ import CtrlButton from '@components/CtrlButton';
 export default {
   name: 'App',
   components: {
-    VueSlickCarousel,
     CtrlButton,
     DropItem,
   },
@@ -51,18 +53,11 @@ export default {
       items: [],
       showIndex: -1,
       lastTopID: 0,
-      settings: {
-        lazyLoad: 'ondemand',
-        dots: true,
-        infinite: false,
-        initialSlide: 2,
-        speed: 500,
-        slidesToShow: 3,
-        slidesToScroll: 1,
-        swipeToSlide: true,
-      },
       containerOuterWidth: 0,
       scale: 6,
+      curIndex: 0,
+      minScale: 2,
+      maxScale: 12,
     };
   },
   computed: {
@@ -81,19 +76,37 @@ export default {
     },
   },
   methods: {
+    onShrinkScale() {
+      if (this.scale > this.minScale) {
+        this.scale--;
+      }
+    },
+    onGrowScale() {
+      if (this.scale < this.maxScale) {
+        this.scale++;
+      }
+    },
     onWheel(e) {
-      // var containerOuterWidth = $('.container').outerWidth(); // узнаем ширину контейнера (width + padding)
+      if (!this.items.length) {
+        return;
+      }
 
-      // var itemOuterWidth = $(this).outerWidth(); // узнаем ширину текущего элемента (width + padding)
-      // var itemOffsetLeft = $(this).offset().left; // узнаем значение отступа слева в контейнере у текущего элемента
-      // var containerScrollLeft = $('.container').scrollLeft(); // узнаем текущее значение скролла
+      const $container = this.$refs.container;
+      const ELEM_WIDTH = this.$refs.items[0].$el.offsetWidth;
+      const DIFF = $container.scrollLeft % ELEM_WIDTH;
+      const MULTIPLIER = e.deltaY > 0 ? 1 : -1;
 
-      // var positionCetner = containerOuterWidth / 2 - itemOuterWidth / 2; // рассчитываем позицию центра
+      let step;
 
-      // var scrollLeftUpd = containerScrollLeft + itemOffsetLeft - positionCetner; // рассчитываем положение скролла относительно разницы отступа элемента и центра контейнера
+      if (!DIFF) {
+        step = ELEM_WIDTH;
+      } else if (MULTIPLIER < 0) {
+        step = DIFF;
+      } else {
+        step = ELEM_WIDTH - DIFF;
+      }
 
-      // анимируем
-      this.$refs.container.scrollLeft += e.deltaY;
+      $container.scrollLeft += MULTIPLIER * step;
     },
     cancelFormSubmit() {
       return false;

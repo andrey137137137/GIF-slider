@@ -1,6 +1,7 @@
 import axios from 'axios';
 import Vue from 'vue';
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
+import VueScrollTo from 'vue-scrollto';
 import App from './App.vue';
 import { IS_DEV } from '@apiHelpers';
 import { SERVER_BASE_URL } from '@helpers';
@@ -13,6 +14,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css';
 Vue.use(BootstrapVue);
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin);
+Vue.use(VueScrollTo);
 Vue.config.productionTip = !IS_DEV;
 
 axios.interceptors.request.use(
