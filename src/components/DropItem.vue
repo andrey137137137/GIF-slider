@@ -1,5 +1,5 @@
 <template lang="pug">
-b-col(:id='id', cols='6', @dragstart='onDragStart($event)')
+b-col(:id='id', :cols='scale', @dragstart='onDragStart($event)')
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
     :class='dropAreaModifs',
@@ -48,6 +48,7 @@ export default {
   props: {
     items: { type: Array, required: true },
     index: { type: Number, default: -1 },
+    scale: { default: 12 },
   },
   data() {
     return {

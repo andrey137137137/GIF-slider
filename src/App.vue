@@ -8,9 +8,10 @@
   )
     b-icon(icon='cloud-download', aria-hidden='true')
   form.my-form(@submit.prevent='cancelFormSubmit')
+    b-form-input(v-model='scale', type='range', min='2', max='12')
     //- VueSlickCarousel(v-bind='settings')
     b-container.d-flex.flex-nowrap.align-items-center.list.slider-frames(
-      style='overflow-x: scroll',
+      :style='containerStyle',
       ref='container',
       @wheel.prevent='onWheel'
     )
@@ -19,6 +20,7 @@
         :key='item.name',
         :index='index',
         :items='items',
+        :scale='scale',
         ref='items'
       )
     DropItem(:items='items')
@@ -34,11 +36,13 @@ import 'vue-slick-carousel/dist/vue-slick-carousel-theme.css';
 import axios from 'axios';
 import dropMixin from '@/dropMixin';
 import DropItem from '@components/DropItem';
+import CtrlButton from '@components/CtrlButton';
 
 export default {
   name: 'App',
   components: {
     VueSlickCarousel,
+    CtrlButton,
     DropItem,
   },
   mixins: [dropMixin],
@@ -58,9 +62,13 @@ export default {
         swipeToSlide: true,
       },
       containerOuterWidth: 0,
+      scale: 6,
     };
   },
   computed: {
+    containerStyle() {
+      return this.items.length ? { 'overflow-x': 'scroll' } : '';
+    },
     toShowImg() {
       return this.showIndex >= 0;
     },
