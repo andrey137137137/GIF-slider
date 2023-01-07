@@ -22,14 +22,15 @@
       ref='container',
       @wheel.prevent='onWheel'
     )
-      DropItem(
-        v-for='(item, index) in items',
-        :key='item.name',
-        :index='index',
-        :items='items',
-        :scale='scale',
-        ref='items'
-      )
+      b-row(v-for='row in rows')
+        DropItem(
+          v-for='(item, index) in itemsByRow(row)',
+          :key='item.name',
+          :index='indexByRow(row, index)',
+          :items='items',
+          :scale='scale',
+          ref='items'
+        )
     DropItem(:items='items')
   .slider-main(v-show='toShowImg')
     img(style='display: block', :src='lightBoxSrc')
@@ -58,9 +59,63 @@ export default {
       curIndex: 0,
       minScale: 2,
       maxScale: 12,
+      scales: [
+        {
+          rows: 2,
+          cols: 6,
+        },
+        {
+          rows: 2,
+          cols: 4,
+        },
+        {
+          rows: 2,
+          cols: 3,
+        },
+        {
+          rows: 1,
+          cols: 2,
+        },
+        {
+          rows: 1,
+          cols: 2,
+        },
+        {
+          rows: 1,
+          cols: 2,
+        },
+        {
+          rows: 1,
+          cols: 1,
+        },
+        {
+          rows: 1,
+          cols: 1,
+        },
+        {
+          rows: 1,
+          cols: 1,
+        },
+        {
+          rows: 1,
+          cols: 1,
+        },
+        {
+          rows: 1,
+          cols: 1,
+        },
+      ],
     };
   },
   computed: {
+    rows() {
+      return Math.ceil(
+        this.items.length / (this.scalesConfig.rows * this.scalesConfig.cols),
+      );
+    },
+    scalesConfig() {
+      return this.scales[this.scale - 2];
+    },
     containerStyle() {
       return this.items.length ? { 'overflow-x': 'scroll' } : '';
     },
@@ -76,6 +131,24 @@ export default {
     },
   },
   methods: {
+    getRowStartOrEnd(rowIndex) {
+      return this.scalesConfig.cols * rowIndex;
+    },
+    itemsByRow(row) {
+      const START = this.getRowStartOrEnd(row - 1);
+      const ROW_STEP = this.getRowStartOrEnd(row);
+      const END = ROW_STEP > this.items.length ? this.items.length : ROW_STEP;
+      const tempArray = [];
+
+      for (let i = START; i < END; i++) {
+        tempArray.push(this.items[i]);
+      }
+
+      return tempArray;
+    },
+    indexByRow(row, index) {
+      return index + this.getRowStartOrEnd(row - 1);
+    },
     onShrinkScale() {
       if (this.scale > this.minScale) {
         this.scale--;
