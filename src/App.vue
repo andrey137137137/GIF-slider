@@ -17,20 +17,30 @@
         :max='maxScale'
       )
       CtrlButton(variant='info', title='+', :handle='onGrowScale')
-    b-container#container.d-flex.flex-nowrap.align-items-center.justify-content-start.list.slider-frames(
+    b-container#container.pl-0.d-flex.flex-nowrap.align-items-center.justify-content-start.list.slider-frames(
       :style='containerStyle',
       ref='container',
       @wheel.prevent='onWheel'
     )
-      b-row(v-for='row in rows')
+      b-row.mx-0(v-for='row in rows', :style='rowStyle')
         DropItem(
           v-for='(item, index) in itemsByRow(row)',
           :key='item.name',
           :index='indexByRow(row, index)',
           :items='items',
           :scale='scale',
+          :style='elemStyle',
           ref='items'
         )
+    //- DropItem(
+    //-   v-for='(item, index) in items',
+    //-   :key='item.name',
+    //-   :index='index',
+    //-   :items='items',
+    //-   :scale='scale',
+    //-   :style='elemStyle',
+    //-   ref='items'
+    //- )
     DropItem(:items='items')
   .slider-main(v-show='toShowImg')
     img(style='display: block', :src='lightBoxSrc')
@@ -105,16 +115,32 @@ export default {
           cols: 1,
         },
       ],
+      gutter: 15,
     };
   },
   computed: {
-    rows() {
-      return Math.ceil(
-        this.items.length / (this.scalesConfig.rows * this.scalesConfig.cols),
-      );
-    },
     scalesConfig() {
       return this.scales[this.scale - 2];
+    },
+    containerInnerWidth() {
+      return this.$refs.container.offsetWidth - this.gutter * 2;
+    },
+    rowStyle() {
+      return {
+        'min-width': this.containerInnerWidth + 'px',
+      };
+    },
+    elemStyle() {
+      return {
+        'min-width':
+          Math.ceil(this.containerInnerWidth / this.scalesConfig.cols) + 'px',
+      };
+    },
+    rowSize() {
+      return this.scalesConfig.rows * this.scalesConfig.cols;
+    },
+    rows() {
+      return Math.ceil(this.items.length / this.rowSize);
     },
     containerStyle() {
       return this.items.length ? { 'overflow-x': 'scroll' } : '';
@@ -132,7 +158,7 @@ export default {
   },
   methods: {
     getRowStartOrEnd(rowIndex) {
-      return this.scalesConfig.cols * rowIndex;
+      return this.rowSize * rowIndex;
     },
     itemsByRow(row) {
       const START = this.getRowStartOrEnd(row - 1);
