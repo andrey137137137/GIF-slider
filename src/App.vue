@@ -17,7 +17,7 @@
         :max='maxScale'
       )
       CtrlButton(variant='info', title='+', :handle='onGrowScale')
-    b-container#container.pl-0.d-flex.flex-nowrap.align-items-center.justify-content-start.list.slider-frames(
+    b-container#container.pl-0.d-flex.flex-nowrap.justify-content-start.list.slider-frames(
       :style='containerStyle',
       ref='container',
       @wheel.prevent='onWheel'
@@ -115,6 +115,7 @@ export default {
           cols: 1,
         },
       ],
+      containerWidth: 0,
       gutter: 15,
     };
   },
@@ -123,11 +124,21 @@ export default {
       return this.scales[this.scale - 2];
     },
     containerInnerWidth() {
-      return this.$refs.container.offsetWidth - this.gutter * 2;
+      return this.containerWidth - this.gutter * 2;
+    },
+    containerStyle() {
+      if (!this.items.length) {
+        return '';
+      }
+
+      return {
+        'overflow-x': 'scroll',
+      };
     },
     rowStyle() {
       return {
         'min-width': this.containerInnerWidth + 'px',
+        ...this.whenAlignItemsCenter(1),
       };
     },
     elemStyle() {
@@ -142,9 +153,6 @@ export default {
     rows() {
       return Math.ceil(this.items.length / this.rowSize);
     },
-    containerStyle() {
-      return this.items.length ? { 'overflow-x': 'scroll' } : '';
-    },
     toShowImg() {
       return this.showIndex >= 0;
     },
@@ -157,6 +165,11 @@ export default {
     },
   },
   methods: {
+    whenAlignItemsCenter(rows) {
+      return {
+        'align-items': this.scalesConfig.rows == rows ? 'center' : 'start',
+      };
+    },
     getRowStartOrEnd(rowIndex) {
       return this.rowSize * rowIndex;
     },
@@ -174,6 +187,13 @@ export default {
     },
     indexByRow(row, index) {
       return index + this.getRowStartOrEnd(row - 1);
+    },
+    onResize() {
+      console.log('RESIZED');
+      const $vm = this;
+      setTimeout(() => {
+        $vm.containerWidth = $vm.$refs.container.offsetWidth;
+      }, 500);
     },
     onShrinkScale() {
       if (this.scale > this.minScale) {
@@ -244,6 +264,10 @@ export default {
   },
   created() {
     this.refresh();
+  },
+  mounted() {
+    window.addEventListener('resize', this.onResize);
+    this.containerWidth = this.$refs.container.offsetWidth;
   },
 };
 </script>
