@@ -32,6 +32,12 @@
           :style='elemStyle',
           ref='items'
         )
+        //- DropItem(
+        //-   v-if='indexByRow(row, index) == items.length - 1 && areOddItems',
+        //-   :items='items'
+        //- )
+      //- b-row.mx-0(v-if='!areOddItems', :style='rowStyle')
+    DropItem(:items='items')
     //- DropItem(
     //-   v-for='(item, index) in items',
     //-   :key='item.name',
@@ -41,7 +47,6 @@
     //-   :style='elemStyle',
     //-   ref='items'
     //- )
-    DropItem(:items='items')
   .slider-main(v-show='toShowImg')
     img(style='display: block', :src='lightBoxSrc')
 </template>
@@ -70,56 +75,26 @@ export default {
       minScale: 2,
       maxScale: 12,
       scales: [
-        {
-          rows: 2,
-          cols: 6,
-        },
-        {
-          rows: 2,
-          cols: 4,
-        },
-        {
-          rows: 2,
-          cols: 3,
-        },
-        {
-          rows: 1,
-          cols: 2,
-        },
-        {
-          rows: 1,
-          cols: 2,
-        },
-        {
-          rows: 1,
-          cols: 2,
-        },
-        {
-          rows: 1,
-          cols: 1,
-        },
-        {
-          rows: 1,
-          cols: 1,
-        },
-        {
-          rows: 1,
-          cols: 1,
-        },
-        {
-          rows: 1,
-          cols: 1,
-        },
-        {
-          rows: 1,
-          cols: 1,
-        },
+        { rows: 2, cols: 6 },
+        { rows: 2, cols: 4 },
+        { rows: 2, cols: 3 },
+        { rows: 1, cols: 2 },
+        { rows: 1, cols: 2 },
+        { rows: 1, cols: 2 },
+        { rows: 1, cols: 1 },
+        { rows: 1, cols: 1 },
+        { rows: 1, cols: 1 },
+        { rows: 1, cols: 1 },
+        { rows: 1, cols: 1 },
       ],
       containerWidth: 0,
       gutter: 15,
     };
   },
   computed: {
+    areOddItems() {
+      return this.items.length % 2;
+    },
     scalesConfig() {
       return this.scales[this.scale - 2];
     },
@@ -170,12 +145,15 @@ export default {
         'align-items': this.scalesConfig.rows == rows ? 'center' : 'start',
       };
     },
-    getRowStartOrEnd(rowIndex) {
+    getRowFinalIndex(rowIndex) {
       return this.rowSize * rowIndex;
     },
+    getRowStartIndex(rowIndex) {
+      return this.getRowFinalIndex(rowIndex - 1);
+    },
     itemsByRow(row) {
-      const START = this.getRowStartOrEnd(row - 1);
-      const ROW_STEP = this.getRowStartOrEnd(row);
+      const START = this.getRowStartIndex(row);
+      const ROW_STEP = this.getRowFinalIndex(row);
       const END = ROW_STEP > this.items.length ? this.items.length : ROW_STEP;
       const tempArray = [];
 
@@ -186,7 +164,7 @@ export default {
       return tempArray;
     },
     indexByRow(row, index) {
-      return index + this.getRowStartOrEnd(row - 1);
+      return index + this.getRowStartIndex(row);
     },
     onResize() {
       console.log('RESIZED');
