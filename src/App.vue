@@ -23,21 +23,23 @@
       @wheel.prevent='onWheel'
     )
       b-row.mx-0(v-for='row in rows', :style='rowStyle')
-        DropItem(
+        div(
           v-for='(item, index) in itemsByRow(row)',
-          :key='item.name',
-          :index='indexByRow(row, index)',
-          :items='items',
-          :scale='scale',
-          :style='elemStyle',
-          ref='items'
+          :key='item.name',:style='rowContentStyle'
         )
-        //- DropItem(
-        //-   v-if='indexByRow(row, index) == items.length - 1 && areOddItems',
-        //-   :items='items'
-        //- )
-      //- b-row.mx-0(v-if='!areOddItems', :style='rowStyle')
-    DropItem(:items='items')
+          DropItem(
+            :index='indexByRow(row, index)',
+            :items='items',
+            :scale='scale',
+            :style='elemStyle',
+            ref='items'
+          )
+          DropItem(
+            v-if='indexByRow(row, index) == items.length - 1 && areOddItems',
+            :items='items'
+          )
+      b-row.mx-0(v-if='!areOddItems', :style='rowStyle')
+        DropItem(:items='items')
     //- DropItem(
     //-   v-for='(item, index) in items',
     //-   :key='item.name',
@@ -113,6 +115,13 @@ export default {
     rowStyle() {
       return {
         'min-width': this.containerInnerWidth + 'px',
+        ...this.whenAlignItemsCenter(1),
+      };
+    },
+    rowContentStyle() {
+      return {
+        display: 'flex',
+        width: '100%',
         ...this.whenAlignItemsCenter(1),
       };
     },
