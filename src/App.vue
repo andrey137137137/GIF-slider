@@ -25,7 +25,8 @@
       b-row.mx-0(v-for='row in rows', :style='rowStyle')
         div(
           v-for='(item, index) in itemsByRow(row)',
-          :key='item.name',:style='rowContentStyle'
+          :key='item.name',
+          :style='rowContentStyle'
         )
           DropItem(
             :index='indexByRow(row, index)',
