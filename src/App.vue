@@ -23,24 +23,25 @@
       @wheel.prevent='onWheel'
     )
       b-row.mx-0(v-for='row in rows', :style='rowStyle')
-        div(
+        //- div(
+        //-   v-for='(item, index) in itemsByRow(row)',
+        //-   :key='item.name',
+        //-   :style='rowContentStyle'
+        //- )
+        DropItem(
           v-for='(item, index) in itemsByRow(row)',
-          :key='item.name',
-          :style='rowContentStyle'
+          :index='indexByRow(row, index)',
+          :items='items',
+          :scale='scale',
+          :style='elemStyle',
+          ref='items'
         )
-          DropItem(
-            :index='indexByRow(row, index)',
-            :items='items',
-            :scale='scale',
-            :style='elemStyle',
-            ref='items'
-          )
-          DropItem(
-            v-if='indexByRow(row, index) == items.length - 1 && areOddItems',
-            :items='items'
-          )
-      b-row.mx-0(v-if='!areOddItems', :style='rowStyle')
-        DropItem(:items='items')
+      //-   DropItem(
+      //-     v-if='indexByRow(row, index) == items.length - 1 && areOddItems',
+      //-     :items='items'
+      //-   )
+      //- b-row.mx-0(v-if='!areOddItems', :style='rowStyle')
+    DropItem(:items='items')
     //- DropItem(
     //-   v-for='(item, index) in items',
     //-   :key='item.name',
@@ -73,7 +74,7 @@ export default {
       showIndex: -1,
       lastTopID: 0,
       containerOuterWidth: 0,
-      scale: 6,
+      scale: 3,
       curIndex: 0,
       minScale: 2,
       maxScale: 12,
@@ -91,7 +92,7 @@ export default {
         { rows: 1, cols: 1 },
       ],
       containerWidth: 0,
-      gutter: 15,
+      gutter: 0,
     };
   },
   computed: {
@@ -115,6 +116,7 @@ export default {
     },
     rowStyle() {
       return {
+        outline: '1px red dotted',
         'min-width': this.containerInnerWidth + 'px',
         ...this.whenAlignItemsCenter(1),
       };
@@ -150,6 +152,9 @@ export default {
     },
   },
   methods: {
+    show(index) {
+      console.log(index);
+    },
     whenAlignItemsCenter(rows) {
       return {
         'align-items': this.scalesConfig.rows == rows ? 'center' : 'start',
