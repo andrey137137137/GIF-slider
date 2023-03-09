@@ -3,7 +3,7 @@ b-col(
   :id='id',
   :cols='scale',
   @dragstart='onDragStart($event)',
-  @dblclick='toggleLightbox'
+  @dblclick='showLightbox'
 )
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
@@ -38,12 +38,6 @@ b-col(
         )
       b-button-group.mx-1(v-if='isNotLast')
         CtrlButton(variant='info', title='>', :handle='onRenameToNext')
-  .slider-main(
-    v-show='toShowLightbox',
-    :style='lightboxStyles',
-    @click='toggleLightbox'
-  )
-    img(style='display: block', :src='lightBoxSrc')
 </template>
 
 <script>
@@ -51,6 +45,7 @@ import axios from 'axios';
 import dropMixin from '@/dropMixin';
 import FileInput from '@components/FileInput';
 import CtrlButton from '@components/CtrlButton';
+import { mapMutations } from 'vuex';
 
 export default {
   name: 'DropItem',
@@ -63,31 +58,12 @@ export default {
   },
   data() {
     return {
-      toShowLightbox: false,
       isHighlighted: false,
       dataTransferAttrName: 'nameID',
       dataTransferAttrExt: 'ext',
     };
   },
   computed: {
-    lightboxStyles() {
-      return {
-        display: this.toShowLightbox ? 'block' : 'none',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        'z-index': 1000000000,
-        width: '100%',
-        height: '100%',
-      };
-    },
-    lightBoxSrc() {
-      if (!this.toShowLightbox) {
-        return '';
-      }
-      const { name, ext } = this.items[this.index];
-      return '/upload/' + name + ext;
-    },
     id() {
       if (this.isAddingItem) {
         return 0;
@@ -131,10 +107,9 @@ export default {
     },
   },
   methods: {
-    toggleLightbox() {
-      this.toShowLightbox = !this.toShowLightbox;
-      console.log(this.index);
-      console.log(this.toShowLightbox);
+    ...mapMutations(['setLightboxIndex']),
+    showLightbox() {
+      this.setLightboxIndex(this.index);
     },
     getLabelAttrFor(inputName) {
       return this.isAddingItem ? inputName : inputName + this.index;

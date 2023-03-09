@@ -51,8 +51,10 @@
     //-   :style='elemStyle',
     //-   ref='items'
     //- )
-  .slider-main(v-show='toShowImg')
-    img(style='display: block', :src='lightBoxSrc')
+  .slider-main(v-show='toShowLightbox', :style='lightboxStyles')
+    img(style='display: block', :src='lightBoxSrc', @click='hideLightbox')
+    div(v-show='showPrev', :style='prevSlideStyles', @click='prevSlide')
+    div(v-show='showNext', :style='nextSlideStyles', @click='nextSlide')
 </template>
 
 <script>
@@ -60,6 +62,7 @@ import axios from 'axios';
 import dropMixin from '@/dropMixin';
 import DropItem from '@components/DropItem';
 import CtrlButton from '@components/CtrlButton';
+import { mapState, mapMutations } from 'vuex';
 
 export default {
   name: 'App',
@@ -71,7 +74,6 @@ export default {
   data() {
     return {
       items: [],
-      showIndex: -1,
       lastTopID: 0,
       containerOuterWidth: 0,
       scale: 3,
@@ -96,6 +98,10 @@ export default {
     };
   },
   computed: {
+    ...mapState(['lightboxIndex']),
+    toShowLightbox() {
+      return this.lightboxIndex >= 0;
+    },
     areOddItems() {
       return this.items.length % 2;
     },
@@ -143,17 +149,65 @@ export default {
     toShowImg() {
       return this.showIndex >= 0;
     },
+    lightboxStyles() {
+      return {
+        display: this.toShowLightbox ? 'block' : 'none',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        'z-index': 1000000000,
+        width: '100%',
+        height: '100%',
+      };
+    },
+    slideNavStyles() {
+      // console.log(this.containerInnerWidth);
+      return {
+        position: 'absolute',
+        top: 0,
+        'z-index': 100000,
+        // width: Math.floor(this.$refs.container.offsetWidth / 8),
+        width: '300px',
+        height: '100%',
+        cursor: 'pointer',
+      };
+    },
+    prevSlideStyles() {
+      return {
+        ...this.slideNavStyles,
+        left: 0,
+      };
+    },
+    nextSlideStyles() {
+      return {
+        ...this.slideNavStyles,
+        right: 0,
+      };
+    },
+    showPrev() {
+      return this.lightboxIndex >= 0;
+    },
+    showNext() {
+      return this.lightboxIndex < this.items.length - 1;
+    },
     lightBoxSrc() {
-      if (!this.toShowImg) {
+      if (!this.toShowLightbox) {
         return '';
       }
-      const { name, ext } = this.items[this.showIndex];
+      const { name, ext } = this.items[this.lightboxIndex];
       return '/upload/' + name + ext;
     },
   },
   methods: {
-    show(index) {
-      console.log(index);
+    ...mapMutations(['setLightboxIndex']),
+    hideLightbox() {
+      this.setLightboxIndex(-1);
+    },
+    prevSlide() {
+      this.setLightboxIndex(this.lightboxIndex - 1);
+    },
+    nextSlide() {
+      this.setLightboxIndex(this.lightboxIndex + 1);
     },
     whenAlignItemsCenter(rows) {
       return {

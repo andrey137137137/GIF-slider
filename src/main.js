@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Vue from 'vue';
+import store from './store.js';
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 import VueScrollTo from 'vue-scrollto';
 import App from './App.vue';
@@ -34,5 +35,7 @@ axios.interceptors.request.use(
 );
 
 new Vue({
+  el: '#app',
   render: h => h(App),
-}).$mount('#app');
+  store: store,
+});
