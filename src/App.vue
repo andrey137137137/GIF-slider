@@ -22,39 +22,36 @@
       ref='container',
       @wheel.prevent='onWheel'
     )
-      b-row.mx-0(v-for='row in rows', :style='rowStyle')
-        //- div(
-        //-   v-for='(item, index) in itemsByRow(row)',
-        //-   :key='item.name',
-        //-   :style='rowContentStyle'
-        //- )
+      b-row.slider-row.mx-0(v-for='(row, rowIndex) in rows', :style='rowStyle')
         DropItem(
-          v-for='(item, index) in itemsByRow(row)',
-          :index='indexByRow(row, index)',
+          v-for='(item, cellIndex) in itemsByRow(row)',
+          :key='item.name',
+          :index='indexByRow(row, cellIndex)',
           :items='items',
           :scale='scale',
           :style='elemStyle',
           ref='items'
         )
-      //-   DropItem(
-      //-     v-if='indexByRow(row, index) == items.length - 1 && areOddItems',
-      //-     :items='items'
-      //-   )
-      //- b-row.mx-0(v-if='!areOddItems', :style='rowStyle')
-    DropItem(:items='items')
-    //- DropItem(
-    //-   v-for='(item, index) in items',
-    //-   :key='item.name',
-    //-   :index='index',
-    //-   :items='items',
-    //-   :scale='scale',
-    //-   :style='elemStyle',
-    //-   ref='items'
-    //- )
-  .slider-main(v-show='toShowLightbox', :style='lightboxStyles')
-    img(style='display: block', :src='lightBoxSrc', @click='hideLightbox')
-    div(v-show='showPrev', :style='prevSlideStyles', @click='prevSlide')
-    div(v-show='showNext', :style='nextSlideStyles', @click='nextSlide')
+        DropItem(
+          v-if='isAddingItemInRow(rowIndex, rows)',
+          :items='items',
+          :scale='scale',
+          :style='elemStyle'
+        )
+      b-row.slider-row.mx-0(v-if='areCompleteRows', :style='emptyRowStyle')
+        DropItem(:items='items', :scale='scale', :style='elemStyle')
+  .slider-main(v-show='toShowLightbox')
+    img.slider-main_img(:src='lightBoxSrc', @dblclick='hideLightbox')
+    .slider-nav.slider-nav--prev(
+      v-show='showPrev',
+      :style='slideNavStyles',
+      @click='prevSlide'
+    )
+    .slider-nav.slider-nav--next(
+      v-show='showNext',
+      :style='slideNavStyles',
+      @click='nextSlide'
+    )
 </template>
 
 <script>
@@ -99,6 +96,9 @@ export default {
   },
   computed: {
     ...mapState(['lightboxIndex']),
+    isNotOneCol() {
+      return this.scalesConfig.cols > 1;
+    },
     toShowLightbox() {
       return this.lightboxIndex >= 0;
     },
@@ -115,14 +115,10 @@ export default {
       if (!this.items.length) {
         return '';
       }
-
-      return {
-        'overflow-x': 'scroll',
-      };
+      return 'overflow-x: scroll';
     },
     rowStyle() {
       return {
-        outline: '1px red dotted',
         'min-width': this.containerInnerWidth + 'px',
         ...this.whenAlignItemsCenter(1),
       };
@@ -140,52 +136,31 @@ export default {
           Math.ceil(this.containerInnerWidth / this.scalesConfig.cols) + 'px',
       };
     },
+    emptyRowStyle() {
+      return {
+        ...this.elemStyle,
+        ...this.whenAlignItemsCenter(this.scalesConfig.rows),
+      };
+    },
     rowSize() {
       return this.scalesConfig.rows * this.scalesConfig.cols;
     },
     rows() {
       return Math.ceil(this.items.length / this.rowSize);
     },
+    areCompleteRows() {
+      return this.items.length % this.rowSize == 0;
+    },
     toShowImg() {
       return this.showIndex >= 0;
     },
-    lightboxStyles() {
-      return {
-        display: this.toShowLightbox ? 'block' : 'none',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        'z-index': 1000000000,
-        width: '100%',
-        height: '100%',
-      };
-    },
     slideNavStyles() {
-      // console.log(this.containerInnerWidth);
       return {
-        position: 'absolute',
-        top: 0,
-        'z-index': 100000,
-        // width: Math.floor(this.$refs.container.offsetWidth / 8),
-        width: '300px',
-        height: '100%',
-        cursor: 'pointer',
-      };
-    },
-    prevSlideStyles() {
-      return {
-        ...this.slideNavStyles,
-        left: 0,
-      };
-    },
-    nextSlideStyles() {
-      return {
-        ...this.slideNavStyles,
-        right: 0,
+        width: Math.ceil(this.containerInnerWidth / 8) + 'px',
       };
     },
     showPrev() {
-      return this.lightboxIndex >= 0;
+      return this.lightboxIndex > 0;
     },
     showNext() {
       return this.lightboxIndex < this.items.length - 1;
@@ -200,6 +175,12 @@ export default {
   },
   methods: {
     ...mapMutations(['setLightboxIndex']),
+    isAddingItemInRow(rowIndex, rows) {
+      if (this.areCompleteRows) {
+        return false;
+      }
+      return rowIndex == rows - 1 && this.isNotOneCol;
+    },
     hideLightbox() {
       this.setLightboxIndex(-1);
     },
