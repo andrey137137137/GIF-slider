@@ -7,7 +7,7 @@ b-col(
 )
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
-    :class='dropAreaModifs',
+    :class='sliderFrameClasses',
     tag='article',
     @dragenter.prevent.stop='onDragEnter',
     @dragover.prevent.stop='onDragOver',
@@ -21,7 +21,7 @@ b-col(
         :src='"/upload/" + imageName',
         :alt='"Image " + imageName'
       )
-    label.button(:for='uploadID')
+    label.button.slider-button(:for='uploadID')
       b-icon(:icon='labelIcon', aria-hidden='true')
       | {{ labelText }}
     b-button-toolbar(v-if='!isAddingItem')
@@ -82,9 +82,10 @@ export default {
     ext() {
       return this.getItemProp('ext');
     },
-    dropAreaModifs() {
+    sliderFrameClasses() {
       return {
         highlight: this.isHighlighted,
+        'slider-frame--last': this.isAddingItem,
       };
     },
     isAddingItem() {

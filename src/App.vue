@@ -41,7 +41,8 @@
       b-row.slider-row.mx-0(v-if='areCompleteRows', :style='emptyRowStyle')
         DropItem(:items='items', :scale='scale', :style='elemStyle')
   .slider-main(v-show='toShowLightbox')
-    img.slider-main_img(:src='lightBoxSrc', @dblclick='hideLightbox')
+    .slider-main_img_wrap(@dblclick='hideLightbox')
+      img.slider-main_img(:src='lightBoxSrc')
     .slider-nav.slider-nav--prev(
       v-show='showPrev',
       :style='slideNavStyles',
@@ -73,7 +74,7 @@ export default {
       items: [],
       lastTopID: 0,
       containerOuterWidth: 0,
-      scale: 3,
+      scale: 6,
       curIndex: 0,
       minScale: 2,
       maxScale: 12,
@@ -120,14 +121,7 @@ export default {
     rowStyle() {
       return {
         'min-width': this.containerInnerWidth + 'px',
-        ...this.whenAlignItemsCenter(1),
-      };
-    },
-    rowContentStyle() {
-      return {
-        display: 'flex',
-        width: '100%',
-        ...this.whenAlignItemsCenter(1),
+        // ...this.whenAlignItemsCenter(1),
       };
     },
     elemStyle() {
@@ -139,7 +133,7 @@ export default {
     emptyRowStyle() {
       return {
         ...this.elemStyle,
-        ...this.whenAlignItemsCenter(this.scalesConfig.rows),
+        // ...this.whenAlignItemsCenter(this.scalesConfig.rows),
       };
     },
     rowSize() {
