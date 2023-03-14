@@ -1,9 +1,10 @@
 <template lang="pug">
 #app.slider
-  b-button(
+  b-button#reload(
     style='display: block; text-align: center; font-size: 50px; line-height: 100px',
     title='RELOAD',
     @click.prevent='refresh',
+    ref='reload',
     href='#'
   )
     b-icon(icon='cloud-download', aria-hidden='true')
@@ -18,27 +19,31 @@
       )
       CtrlButton(variant='info', title='+', :handle='onGrowScale')
     b-container#container.pl-0.d-flex.flex-nowrap.justify-content-start.list.slider-frames(
+      fluid,
       :style='containerStyle',
       ref='container',
       @wheel.prevent='onWheel'
     )
-      b-row.slider-row.mx-0(v-for='(row, rowIndex) in rows', :style='rowStyle')
+      b-row.slider-row.mx-0(
+        v-for='(group, groupIndex) in groups',
+        :style='groupStyle'
+      )
         DropItem(
-          v-for='(item, cellIndex) in itemsByRow(row)',
+          v-for='(item, cellIndex) in itemsByGroup(group)',
           :key='item.name',
-          :index='indexByRow(row, cellIndex)',
+          :index='indexByGroup(group, cellIndex)',
           :items='items',
           :scale='scale',
           :style='elemStyle',
           ref='items'
         )
         DropItem(
-          v-if='isAddingItemInRow(rowIndex, rows)',
+          v-if='isAddingItemInGroup(groupIndex, groups)',
           :items='items',
           :scale='scale',
           :style='elemStyle'
         )
-      b-row.slider-row.mx-0(v-if='areCompleteRows', :style='emptyRowStyle')
+      b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
         DropItem(:items='items', :scale='scale', :style='elemStyle')
   .slider-main(v-show='toShowLightbox')
     .slider-main_img_wrap(@dblclick='hideLightbox')
@@ -74,25 +79,24 @@ export default {
       items: [],
       lastTopID: 0,
       containerOuterWidth: 0,
-      scale: 6,
+      oneRowHeight: 395,
+      scale: 8,
       curIndex: 0,
-      minScale: 2,
-      maxScale: 12,
+      minScale: 1,
+      maxScale: 8,
       scales: [
+        { rows: 2, cols: 9 },
+        { rows: 2, cols: 8 },
         { rows: 2, cols: 6 },
+        { rows: 2, cols: 5 },
         { rows: 2, cols: 4 },
-        { rows: 2, cols: 3 },
+        { rows: 1, cols: 3 },
         { rows: 1, cols: 2 },
-        { rows: 1, cols: 2 },
-        { rows: 1, cols: 2 },
-        { rows: 1, cols: 1 },
-        { rows: 1, cols: 1 },
-        { rows: 1, cols: 1 },
-        { rows: 1, cols: 1 },
         { rows: 1, cols: 1 },
       ],
       containerWidth: 0,
       gutter: 0,
+      rows: 1,
     };
   },
   computed: {
@@ -107,7 +111,7 @@ export default {
       return this.items.length % 2;
     },
     scalesConfig() {
-      return this.scales[this.scale - 2];
+      return this.scales[this.scale - 1];
     },
     containerInnerWidth() {
       return this.containerWidth - this.gutter * 2;
@@ -118,32 +122,48 @@ export default {
       }
       return 'overflow-x: scroll';
     },
-    rowStyle() {
+    groupStyle() {
       return {
         'min-width': this.containerInnerWidth + 'px',
         // ...this.whenAlignItemsCenter(1),
       };
     },
+    elemWidth() {
+      return Math.floor(this.containerInnerWidth / this.scalesConfig.cols);
+    },
     elemStyle() {
       return {
-        'min-width':
-          Math.ceil(this.containerInnerWidth / this.scalesConfig.cols) + 'px',
+        'min-width': this.withPx(this.elemWidth),
+        'max-width': this.withPx(this.elemWidth),
       };
     },
-    emptyRowStyle() {
+    emptyGroupStyle() {
       return {
         ...this.elemStyle,
         // ...this.whenAlignItemsCenter(this.scalesConfig.rows),
       };
     },
-    rowSize() {
-      return this.scalesConfig.rows * this.scalesConfig.cols;
+    groupSize() {
+      // return this.scalesConfig.rows * this.scalesConfig.cols;
+      const { cols } = this.scalesConfig;
+
+      if (this.rows == 1) {
+        return cols;
+      }
+
+      const { rows } = this.scalesConfig;
+
+      // if (this.rows > rows) {
+      //   return this.rows * cols;
+      // }
+
+      return rows * cols;
     },
-    rows() {
-      return Math.ceil(this.items.length / this.rowSize);
+    groups() {
+      return Math.ceil(this.items.length / this.groupSize);
     },
-    areCompleteRows() {
-      return this.items.length % this.rowSize == 0;
+    areCompleteGroups() {
+      return this.items.length % this.groupSize == 0;
     },
     toShowImg() {
       return this.showIndex >= 0;
@@ -169,11 +189,14 @@ export default {
   },
   methods: {
     ...mapMutations(['setLightboxIndex']),
-    isAddingItemInRow(rowIndex, rows) {
-      if (this.areCompleteRows) {
+    withPx(value) {
+      return value + 'px';
+    },
+    isAddingItemInGroup(groupIndex, groups) {
+      if (this.areCompleteGroups) {
         return false;
       }
-      return rowIndex == rows - 1 && this.isNotOneCol;
+      return groupIndex == groups - 1 && this.isNotOneCol;
     },
     hideLightbox() {
       this.setLightboxIndex(-1);
@@ -189,16 +212,17 @@ export default {
         'align-items': this.scalesConfig.rows == rows ? 'center' : 'start',
       };
     },
-    getRowFinalIndex(rowIndex) {
-      return this.rowSize * rowIndex;
+    getGroupFinalIndex(groupIndex) {
+      return this.groupSize * groupIndex;
     },
-    getRowStartIndex(rowIndex) {
-      return this.getRowFinalIndex(rowIndex - 1);
+    getGroupStartIndex(groupIndex) {
+      return this.getGroupFinalIndex(groupIndex - 1);
     },
-    itemsByRow(row) {
-      const START = this.getRowStartIndex(row);
-      const ROW_STEP = this.getRowFinalIndex(row);
-      const END = ROW_STEP > this.items.length ? this.items.length : ROW_STEP;
+    itemsByGroup(group) {
+      const START = this.getGroupStartIndex(group);
+      const GROUP_STEP = this.getGroupFinalIndex(group);
+      const END =
+        GROUP_STEP > this.items.length ? this.items.length : GROUP_STEP;
       const tempArray = [];
 
       for (let i = START; i < END; i++) {
@@ -207,14 +231,29 @@ export default {
 
       return tempArray;
     },
-    indexByRow(row, index) {
-      return index + this.getRowStartIndex(row);
+    indexByGroup(group, index) {
+      return index + this.getGroupStartIndex(group);
+    },
+    setRows() {
+      const TEMP = Math.floor(
+        (window.innerHeight - this.$refs.reload.$el.offsetHeight) /
+          this.oneRowHeight,
+      );
+
+      this.rows = !TEMP ? 1 : TEMP;
+    },
+    setContainerWidthAndRows() {
+      // console.log(window.innerHeight);
+      // console.log(this.$refs.reload);
+      // console.log(this.$refs.container);
+      this.setRows();
+      this.containerWidth = this.$refs.container.offsetWidth;
     },
     onResize() {
       console.log('RESIZED');
       const $vm = this;
       setTimeout(() => {
-        $vm.containerWidth = $vm.$refs.container.offsetWidth;
+        $vm.setContainerWidthAndRows();
       }, 500);
     },
     onShrinkScale() {
@@ -289,7 +328,7 @@ export default {
   },
   mounted() {
     window.addEventListener('resize', this.onResize);
-    this.containerWidth = this.$refs.container.offsetWidth;
+    this.setContainerWidthAndRows();
   },
 };
 </script>
