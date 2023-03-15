@@ -276,6 +276,12 @@ export default {
       const DIFF = $container.scrollLeft % ELEM_WIDTH;
       const MULTIPLIER = e.deltaY > 0 ? 1 : -1;
 
+      // console.log('------------------------------------');
+      // console.log('scrollLeft: ' + $container.scrollLeft);
+      // console.log('ELEM_WIDTH: ' + ELEM_WIDTH);
+      // console.log('DIFF:       ' + DIFF);
+      // console.log('MULTIPLIER: ' + MULTIPLIER);
+
       let step;
 
       if (!DIFF) {
@@ -285,6 +291,8 @@ export default {
       } else {
         step = ELEM_WIDTH - DIFF;
       }
+
+      // console.log('step:       ' + step);
 
       $container.scrollLeft += MULTIPLIER * step;
     },
