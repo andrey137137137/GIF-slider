@@ -46,17 +46,17 @@
       b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
         DropItem(:items='items', :scale='scale', :style='elemStyle')
   .slider-main(v-show='toShowLightbox')
-    .slider-main_img_wrap(@dblclick='hideLightbox')
+    .slider-main_img_wrap(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
     .slider-nav.slider-nav--prev(
-      v-show='showPrev',
+      v-show='toShowPrev',
       :style='slideNavStyles',
-      @click='prevSlide'
+      @click='onPrevSlide'
     )
     .slider-nav.slider-nav--next(
-      v-show='showNext',
+      v-show='toShowNext',
       :style='slideNavStyles',
-      @click='nextSlide'
+      @click='onNextSlide'
     )
 </template>
 
@@ -166,17 +166,17 @@ export default {
       return this.items.length % this.groupSize == 0;
     },
     toShowImg() {
-      return this.showIndex >= 0;
+      return this.lightboxIndex >= 0;
     },
     slideNavStyles() {
       return {
         width: Math.ceil(this.containerInnerWidth / 8) + 'px',
       };
     },
-    showPrev() {
+    toShowPrev() {
       return this.lightboxIndex > 0;
     },
-    showNext() {
+    toShowNext() {
       return this.lightboxIndex < this.items.length - 1;
     },
     lightBoxSrc() {
@@ -197,15 +197,6 @@ export default {
         return false;
       }
       return groupIndex == groups - 1 && this.isNotOneCol;
-    },
-    hideLightbox() {
-      this.setLightboxIndex(-1);
-    },
-    prevSlide() {
-      this.setLightboxIndex(this.lightboxIndex - 1);
-    },
-    nextSlide() {
-      this.setLightboxIndex(this.lightboxIndex + 1);
     },
     whenAlignItemsCenter(rows) {
       return {
@@ -248,6 +239,36 @@ export default {
       // console.log(this.$refs.container);
       this.setRows();
       this.containerWidth = this.$refs.container.offsetWidth;
+    },
+    onHideLightbox() {
+      this.setLightboxIndex(-1);
+    },
+    onPrevSlide() {
+      this.setLightboxIndex(this.lightboxIndex - 1);
+    },
+    onNextSlide() {
+      this.setLightboxIndex(this.lightboxIndex + 1);
+    },
+    onKeyUp(e) {
+      const { key } = e;
+
+      if (!this.toShowImg) {
+        return;
+      }
+
+      if (key == 'ArrowUp') {
+        this.onHideLightbox();
+      }
+
+      if (key == 'ArrowLeft' && this.toShowPrev) {
+        this.onPrevSlide();
+        return;
+      }
+
+      if (key == 'ArrowRight' && this.toShowNext) {
+        this.onNextSlide();
+        return;
+      }
     },
     onResize() {
       console.log('RESIZED');
@@ -336,7 +357,12 @@ export default {
   },
   mounted() {
     window.addEventListener('resize', this.onResize);
+    document.addEventListener('keyup', this.onKeyUp);
     this.setContainerWidthAndRows();
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize');
+    document.removeEventListener('keyup');
   },
 };
 </script>
