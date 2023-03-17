@@ -240,7 +240,24 @@ export default {
       const GROUP_INDEX = Math.floor(this.lightboxIndex / this.groupSize);
       const ELEM_INDEX = this.lightboxIndex % this.cols;
       const MULTIPLIER = GROUP_INDEX * this.cols + ELEM_INDEX;
-      $container.scrollLeft = MULTIPLIER * ELEM_WIDTH;
+      let offset = 0;
+
+      if (this.cols > 2) {
+        const COND = this.cols % 2;
+        let size = this.cols;
+
+        if (COND) {
+          size--;
+        }
+
+        offset = size / 2;
+
+        if (!COND) {
+          offset--;
+        }
+      }
+
+      $container.scrollLeft = MULTIPLIER * ELEM_WIDTH - offset * ELEM_WIDTH;
     },
     setContainerWidthAndRows() {
       // console.log(window.innerHeight);
