@@ -102,7 +102,7 @@ export default {
   computed: {
     ...mapState(['lightboxIndex']),
     isNotOneCol() {
-      return this.scalesConfig.cols > 1;
+      return this.cols > 1;
     },
     toShowLightbox() {
       return this.lightboxIndex >= 0;
@@ -112,6 +112,9 @@ export default {
     },
     scalesConfig() {
       return this.scales[this.scale - 1];
+    },
+    cols() {
+      return this.scalesConfig.cols;
     },
     containerInnerWidth() {
       return this.containerWidth - this.gutter * 2;
@@ -129,7 +132,7 @@ export default {
       };
     },
     elemWidth() {
-      return Math.floor(this.containerInnerWidth / this.scalesConfig.cols);
+      return Math.floor(this.containerInnerWidth / this.cols);
     },
     elemStyle() {
       return {
@@ -144,20 +147,19 @@ export default {
       };
     },
     groupSize() {
-      // return this.scalesConfig.rows * this.scalesConfig.cols;
-      const { cols } = this.scalesConfig;
+      // return this.scalesConfig.rows * this.cols;
 
       if (this.rows == 1) {
-        return cols;
+        return this.cols;
       }
 
-      const { rows } = this.scalesConfig;
+      // const { rows } = this.scalesConfig;
 
       // if (this.rows > rows) {
-      //   return this.rows * cols;
+      //   return this.rows * this.cols;
       // }
 
-      return rows * cols;
+      return this.scalesConfig.rows * this.cols;
     },
     groups() {
       return Math.ceil(this.items.length / this.groupSize);
@@ -211,9 +213,8 @@ export default {
     },
     itemsByGroup(group) {
       const START = this.getGroupStartIndex(group);
-      const GROUP_STEP = this.getGroupFinalIndex(group);
-      const END =
-        GROUP_STEP > this.items.length ? this.items.length : GROUP_STEP;
+      const GROUP_END = this.getGroupFinalIndex(group);
+      const END = GROUP_END > this.items.length ? this.items.length : GROUP_END;
       const tempArray = [];
 
       for (let i = START; i < END; i++) {
@@ -233,6 +234,14 @@ export default {
 
       this.rows = !TEMP ? 1 : TEMP;
     },
+    scrollToLightboxIndex() {
+      const $container = this.$refs.container;
+      const ELEM_WIDTH = this.$refs.items[0].$el.offsetWidth;
+      const GROUP_INDEX = Math.floor(this.lightboxIndex / this.groupSize);
+      const ELEM_INDEX = this.lightboxIndex % this.cols;
+      const MULTIPLIER = GROUP_INDEX * this.cols + ELEM_INDEX;
+      $container.scrollLeft = MULTIPLIER * ELEM_WIDTH;
+    },
     setContainerWidthAndRows() {
       // console.log(window.innerHeight);
       // console.log(this.$refs.reload);
@@ -245,9 +254,11 @@ export default {
     },
     onPrevSlide() {
       this.setLightboxIndex(this.lightboxIndex - 1);
+      this.scrollToLightboxIndex();
     },
     onNextSlide() {
       this.setLightboxIndex(this.lightboxIndex + 1);
+      this.scrollToLightboxIndex();
     },
     onKeyUp(e) {
       const { key } = e;
