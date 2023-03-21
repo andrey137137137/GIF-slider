@@ -3,7 +3,7 @@ b-col(
   :id='id',
   :cols='scale',
   @dragstart='onDragStart($event)',
-  @dblclick='showLightbox'
+  @dblclick='onShowLightbox'
 )
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
@@ -109,9 +109,6 @@ export default {
   },
   methods: {
     ...mapMutations(['setLightboxIndex']),
-    showLightbox() {
-      this.setLightboxIndex(this.index);
-    },
     getLabelAttrFor(inputName) {
       return this.isAddingItem ? inputName : inputName + this.index;
     },
@@ -123,73 +120,6 @@ export default {
     },
     compareDroppingFile(index, name) {
       return this.items[index - 1].name == name;
-    },
-    onDragStart(e) {
-      const dt = e.dataTransfer;
-      dt.dropEffect = 'move';
-      dt.effectAllowed = 'move';
-      dt.setData(this.dataTransferAttrName, this.name);
-      dt.setData(this.dataTransferAttrExt, this.ext);
-    },
-    onDragEnd() {
-      this.isTransporting = false;
-    },
-    onDragEnter() {
-      this.isHighlighted = true;
-    },
-    onDragOver() {
-      this.isHighlighted = true;
-    },
-    onDragLeave() {
-      this.isHighlighted = false;
-    },
-    onDrop(e) {
-      const dt = e.dataTransfer;
-      const DT_NAME = dt.getData(this.dataTransferAttrName);
-      console.log('Drop targer: ' + this.name);
-      console.log('Dropping:    ' + DT_NAME);
-      this.isHighlighted = false;
-
-      if (DT_NAME) {
-        if (
-          this.isAddingItem &&
-          this.compareDroppingFile(this.items.length, DT_NAME)
-        ) {
-          return;
-        }
-        if (this.index > 0 && this.compareDroppingFile(this.index, DT_NAME)) {
-          return;
-        }
-        if (this.name != DT_NAME) {
-          this.renameFile({
-            name: DT_NAME,
-            ext: dt.getData(this.dataTransferAttrExt),
-          });
-        }
-        return;
-      }
-
-      this.uploadFiles(dt.files);
-    },
-    onFiles(e) {
-      this.uploadFiles(e.target.files);
-    },
-    onRenameToPrev() {
-      this.renameFile(-1);
-    },
-    onRenameToNext() {
-      this.renameFile();
-    },
-    onReplace(e) {
-      this.uploadFile(e.target.files[0], true);
-    },
-    onDelete() {
-      if (confirm('To delete ' + this.imageName + '?')) {
-        const $vm = this;
-        axios.delete($vm.uploadHost + '/' + $vm.imageName).then(() => {
-          $vm.items.splice($vm.index, 1);
-        });
-      }
     },
     getExt(fileName) {
       const LAST_SEPARATOR = fileName.lastIndexOf('.');
@@ -258,9 +188,77 @@ export default {
       result += postfix;
       return result;
     },
+    onShowLightbox() {
+      this.setLightboxIndex(this.index);
+      this.$parent.scrollToLightboxIndex();
+    },
+    onDragStart(e) {
+      const dt = e.dataTransfer;
+      dt.dropEffect = 'move';
+      dt.effectAllowed = 'move';
+      dt.setData(this.dataTransferAttrName, this.name);
+      dt.setData(this.dataTransferAttrExt, this.ext);
+    },
+    onDragEnd() {
+      this.isTransporting = false;
+    },
+    onDragEnter() {
+      this.isHighlighted = true;
+    },
+    onDragOver() {
+      this.isHighlighted = true;
+    },
+    onDragLeave() {
+      this.isHighlighted = false;
+    },
+    onDrop(e) {
+      const dt = e.dataTransfer;
+      const DT_NAME = dt.getData(this.dataTransferAttrName);
+      console.log('Drop targer: ' + this.name);
+      console.log('Dropping:    ' + DT_NAME);
+      this.isHighlighted = false;
+
+      if (DT_NAME) {
+        if (
+          this.isAddingItem &&
+          this.compareDroppingFile(this.items.length, DT_NAME)
+        ) {
+          return;
+        }
+        if (this.index > 0 && this.compareDroppingFile(this.index, DT_NAME)) {
+          return;
+        }
+        if (this.name != DT_NAME) {
+          this.renameFile({
+            name: DT_NAME,
+            ext: dt.getData(this.dataTransferAttrExt),
+          });
+        }
+        return;
+      }
+
+      this.uploadFiles(dt.files);
+    },
+    onFiles(e) {
+      this.uploadFiles(e.target.files);
+    },
+    onRenameToPrev() {
+      this.renameFile(-1);
+    },
+    onRenameToNext() {
+      this.renameFile();
+    },
+    onReplace(e) {
+      this.uploadFile(e.target.files[0], true);
+    },
+    onDelete() {
+      if (confirm('To delete ' + this.imageName + '?')) {
+        const $vm = this;
+        axios.delete($vm.uploadHost + '/' + $vm.imageName).then(() => {
+          $vm.items.splice($vm.index, 1);
+        });
+      }
+    },
   },
 };
 </script>
-
-<style lang="scss">
-</style>

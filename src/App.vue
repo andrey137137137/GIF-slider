@@ -3,12 +3,12 @@
   b-button#reload(
     style='display: block; text-align: center; font-size: 50px; line-height: 100px',
     title='RELOAD',
-    @click.prevent='refresh',
+    @click.prevent='onRefresh',
     ref='reload',
     href='#'
   )
     b-icon(icon='cloud-download', aria-hidden='true')
-  form.my-form(@submit.prevent='cancelFormSubmit')
+  form.my-form(@submit.prevent='onCancelFormSubmit')
     b-button-group.d-flex
       CtrlButton(variant='info', title='-', :handle='onShrinkScale')
       b-form-input(
@@ -266,6 +266,18 @@ export default {
       this.setRows();
       this.containerWidth = this.$refs.container.offsetWidth;
     },
+    insertBeforeItem(name, ext, index) {
+      this.items.splice(index, 0, { name, ext });
+    },
+    replace(index, ext) {
+      const tempArray = this.items;
+      tempArray[index].ext = ext;
+      this.items = tempArray;
+    },
+    addItem(lastTopID, ext) {
+      this.lastTopID = lastTopID;
+      this.items.push({ name: this.lastTopID + '', ext });
+    },
     onHideLightbox() {
       this.setLightboxIndex(-1);
     },
@@ -345,22 +357,10 @@ export default {
 
       $container.scrollLeft += MULTIPLIER * step;
     },
-    cancelFormSubmit() {
+    onCancelFormSubmit() {
       return false;
     },
-    insertBeforeItem(name, ext, index) {
-      this.items.splice(index, 0, { name, ext });
-    },
-    replace(index, ext) {
-      const tempArray = this.items;
-      tempArray[index].ext = ext;
-      this.items = tempArray;
-    },
-    addItem(lastTopID, ext) {
-      this.lastTopID = lastTopID;
-      this.items.push({ name: this.lastTopID + '', ext });
-    },
-    refresh() {
+    onRefresh() {
       const $vm = this;
       axios.get(this.uploadHost).then(res => {
         $vm.items = res.data;
@@ -381,7 +381,7 @@ export default {
     },
   },
   created() {
-    this.refresh();
+    this.onRefresh();
   },
   mounted() {
     window.addEventListener('resize', this.onResize);
