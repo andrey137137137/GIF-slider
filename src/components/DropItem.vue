@@ -161,7 +161,7 @@ export default {
       axios
         .get(this.uploadHost + '/' + IMAGE_NAME + '/' + TEMP_ID + EXT)
         .then(() => {
-          $vm.$parent.refresh();
+          $vm.$parent.onRefresh();
         });
     },
     calcBeforeID(index = -1) {

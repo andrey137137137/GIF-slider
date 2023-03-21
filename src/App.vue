@@ -46,7 +46,7 @@
       b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
         DropItem(:items='items', :scale='scale', :style='elemStyle')
   .slider-main(v-show='toShowLightbox')
-    .slider-main_img_wrap(@dblclick='onHideLightbox')
+    .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
     .slider-nav.slider-nav--prev(
       v-show='toShowPrev',
@@ -84,16 +84,16 @@ export default {
       curIndex: 0,
       minScale: 1,
       maxScale: 8,
-      scales: [
-        { rows: 2, cols: 9 },
-        { rows: 2, cols: 8 },
-        { rows: 2, cols: 6 },
-        { rows: 2, cols: 5 },
-        { rows: 2, cols: 4 },
-        { rows: 1, cols: 3 },
-        { rows: 1, cols: 2 },
-        { rows: 1, cols: 1 },
-      ],
+      // scales: [
+      //   { rows: 2, cols: 8 },
+      //   { rows: 2, cols: 7 },
+      //   { rows: 2, cols: 6 },
+      //   { rows: 2, cols: 5 },
+      //   { rows: 2, cols: 4 },
+      //   { rows: 1, cols: 3 },
+      //   { rows: 1, cols: 2 },
+      //   { rows: 1, cols: 1 },
+      // ],
       containerWidth: 0,
       gutter: 0,
       rows: 1,
@@ -111,7 +111,9 @@ export default {
       return this.items.length % 2;
     },
     scalesConfig() {
-      return this.scales[this.scale - 1];
+      const cols = this.maxScale - this.scale + 1;
+      const rows = cols > 3 ? 2 : 1;
+      return { rows, cols };
     },
     cols() {
       return this.scalesConfig.cols;
@@ -259,12 +261,22 @@ export default {
 
       $container.scrollLeft = MULTIPLIER * ELEM_WIDTH - offset * ELEM_WIDTH;
     },
-    setContainerWidthAndRows() {
+    setScales() {
       // console.log(window.innerHeight);
       // console.log(this.$refs.reload);
       // console.log(this.$refs.container);
       this.setRows();
       this.containerWidth = this.$refs.container.offsetWidth;
+
+      const MIN_ELEM_WIDTH = 200;
+      let divider = 1;
+
+      while (this.containerWidth / divider >= MIN_ELEM_WIDTH) {
+        divider++;
+      }
+
+      this.maxScale = divider;
+      this.scale = Math.floor(this.maxScale / 2);
     },
     insertBeforeItem(name, ext, index) {
       this.items.splice(index, 0, { name, ext });
@@ -313,8 +325,9 @@ export default {
     onResize() {
       console.log('RESIZED');
       const $vm = this;
-      setTimeout(() => {
-        $vm.setContainerWidthAndRows();
+      const TIMEOUT_ID = setTimeout(() => {
+        $vm.setScales();
+        clearTimeout(TIMEOUT_ID);
       }, 500);
     },
     onShrinkScale() {
@@ -386,7 +399,7 @@ export default {
   mounted() {
     window.addEventListener('resize', this.onResize);
     document.addEventListener('keyup', this.onKeyUp);
-    this.setContainerWidthAndRows();
+    this.setScales();
   },
   beforeDestroy() {
     window.removeEventListener('resize');
