@@ -32,19 +32,17 @@
           v-for='(item, cellIndex) in itemsByGroup(group)',
           :key='item.name',
           :index='indexByGroup(group, cellIndex)',
-          :items='items',
           :scale='scale',
           :style='elemStyle',
           ref='items'
         )
         DropItem(
           v-if='isAddingItemInGroup(groupIndex, groups)',
-          :items='items',
           :scale='scale',
           :style='elemStyle'
         )
       b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
-        DropItem(:items='items', :scale='scale', :style='elemStyle')
+        DropItem(:scale='scale', :style='elemStyle')
   .slider-main(v-show='toShowLightbox')
     .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
@@ -76,8 +74,6 @@ export default {
   mixins: [dropMixin],
   data() {
     return {
-      items: [],
-      lastTopID: 0,
       containerOuterWidth: 0,
       oneRowHeight: 395,
       scale: 8,
@@ -100,7 +96,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(['lightboxIndex']),
+    ...mapState(['items', 'lightboxIndex']),
     isNotOneCol() {
       return this.cols > 1;
     },
@@ -192,7 +188,12 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(['setLightboxIndex']),
+    ...mapMutations([
+      'setItems',
+      'setLightboxIndex',
+      'setLastTopID',
+      'decLastTopID',
+    ]),
     withPx(value) {
       return value + 'px';
     },
@@ -277,18 +278,6 @@ export default {
 
       this.maxScale = divider;
       this.scale = Math.floor(this.maxScale / 2);
-    },
-    insertBeforeItem(name, ext, index) {
-      this.items.splice(index, 0, { name, ext });
-    },
-    replace(index, ext) {
-      const tempArray = this.items;
-      tempArray[index].ext = ext;
-      this.items = tempArray;
-    },
-    addItem(lastTopID, ext) {
-      this.lastTopID = lastTopID;
-      this.items.push({ name: this.lastTopID + '', ext });
     },
     onHideLightbox() {
       this.setLightboxIndex(-1);
@@ -376,19 +365,19 @@ export default {
     onRefresh() {
       const $vm = this;
       axios.get(this.uploadHost).then(res => {
-        $vm.items = res.data;
+        $vm.setItems(res.data);
 
         if (!$vm.items.length) {
-          $vm.lastTopID = 0;
+          $vm.setLastTopID(0);
           return;
         }
 
         const LAST_INDEX = $vm.items.length - 1;
         const LAST_LOADED_TOP_ID = $vm.items[LAST_INDEX].name;
-        $vm.lastTopID = parseInt(LAST_LOADED_TOP_ID);
+        $vm.setLastTopID(parseInt(LAST_LOADED_TOP_ID));
 
         if ($vm.getIdParts(LAST_INDEX).length > 1) {
-          $vm.lastTopID--;
+          $vm.decLastTopID();
         }
       });
     },

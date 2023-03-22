@@ -45,16 +45,15 @@ import axios from 'axios';
 import dropMixin from '@/dropMixin';
 import FileInput from '@components/FileInput';
 import CtrlButton from '@components/CtrlButton';
-import { mapMutations } from 'vuex';
+import { mapState, mapMutations } from 'vuex';
 
 export default {
   name: 'DropItem',
   components: { FileInput, CtrlButton },
   mixins: [dropMixin],
   props: {
-    items: { type: Array, required: true },
+    scale: { type: [Number, String], require: true },
     index: { type: Number, default: -1 },
-    scale: { default: 12 },
   },
   data() {
     return {
@@ -64,6 +63,7 @@ export default {
     };
   },
   computed: {
+    ...mapState(['items', 'lastTopID']),
     id() {
       if (this.isAddingItem) {
         return 0;
@@ -108,7 +108,13 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(['setLightboxIndex']),
+    ...mapMutations([
+      'setLightboxIndex',
+      'insertBeforeItem',
+      'replaceItem',
+      'addItem',
+      'deleteItem',
+    ]),
     getLabelAttrFor(inputName) {
       return this.isAddingItem ? inputName : inputName + this.index;
     },
@@ -127,26 +133,27 @@ export default {
     },
     getTempID(index = -1) {
       const COND = index < 0 ? !this.isAddingItem : this.items[index];
-      return COND ? this.calcBeforeID(index) : this.$parent.$data.lastTopID + 1;
+      return COND ? this.calcBeforeID(index) : this.lastTopID + 1;
     },
     uploadFiles(files) {
       const filesList = [...files];
       filesList.forEach(this.uploadFile);
     },
     uploadFile(file, isReplacing = false) {
+      const { index } = this;
       const $vm = this;
-      const EXT = this.getExt(file.name);
+      const ext = this.getExt(file.name);
       const TEMP_ID = isReplacing ? this.name : this.getTempID();
       const form = new FormData();
-      form.append('image', file, TEMP_ID + EXT);
+      form.append('image', file, TEMP_ID + ext);
       axios.post(this.uploadHost, form).then(() => {
         /* Готово. Информируем пользователя */
         if (isReplacing) {
-          $vm.$parent.replace($vm.index, EXT);
+          $vm.replaceItem({ index, ext });
         } else if ($vm.isAddingItem) {
-          $vm.$parent.addItem(TEMP_ID, EXT);
+          $vm.addItem({ lastTopID: TEMP_ID, ext });
         } else {
-          $vm.$parent.insertBeforeItem(TEMP_ID, EXT, $vm.index);
+          $vm.insertBeforeItem({ name: TEMP_ID, ext, index });
         }
       });
     },
@@ -255,7 +262,7 @@ export default {
       if (confirm('To delete ' + this.imageName + '?')) {
         const $vm = this;
         axios.delete($vm.uploadHost + '/' + $vm.imageName).then(() => {
-          $vm.items.splice($vm.index, 1);
+          $vm.deleteItem($vm.index);
         });
       }
     },

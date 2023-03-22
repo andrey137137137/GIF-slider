@@ -10,8 +10,17 @@ export default new Vuex.Store({
     lastTopID: 0,
   },
   mutations: {
+    setItems(state, data) {
+      state.items = data;
+    },
     setLightboxIndex(state, value) {
       state.lightboxIndex = value;
+    },
+    setLastTopID(state, value) {
+      state.lastTopID = value;
+    },
+    decLastTopID(state) {
+      state.lastTopID--;
     },
     insertBeforeItem(state, { name, ext, index }) {
       state.items.splice(index, 0, { name, ext });
@@ -23,7 +32,7 @@ export default new Vuex.Store({
     },
     addItem(state, { lastTopID, ext }) {
       state.lastTopID = lastTopID;
-      state.items.push({ name: state.lastTopID + '', ext });
+      state.items.push({ name: lastTopID + '', ext });
     },
     deleteItem(state, index) {
       state.items.splice(index, 1);
