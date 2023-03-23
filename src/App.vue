@@ -15,14 +15,18 @@
         v-model='scale',
         type='range',
         :min='minScale',
-        :max='maxScale'
+        :max='maxScale',
+        @keyup.prevent='',
+        @keydown.prevent=''
       )
       CtrlButton(variant='info', title='+', :handle='onGrowScale')
     b-container#container.pl-0.d-flex.flex-nowrap.justify-content-start.list.slider-frames(
-      fluid,
       :style='containerStyle',
       ref='container',
-      @wheel.prevent='onWheel'
+      @wheel.prevent='onWheel',
+      @keyup.prevent='',
+      @keydown.prevent='',
+      fluid
     )
       b-row.slider-row.mx-0(
         v-for='(group, groupIndex) in groups',
@@ -80,16 +84,6 @@ export default {
       curIndex: 0,
       minScale: 1,
       maxScale: 8,
-      // scales: [
-      //   { rows: 2, cols: 8 },
-      //   { rows: 2, cols: 7 },
-      //   { rows: 2, cols: 6 },
-      //   { rows: 2, cols: 5 },
-      //   { rows: 2, cols: 4 },
-      //   { rows: 1, cols: 3 },
-      //   { rows: 1, cols: 2 },
-      //   { rows: 1, cols: 1 },
-      // ],
       containerWidth: 0,
       gutter: 0,
       rows: 1,
@@ -262,74 +256,7 @@ export default {
 
       $container.scrollLeft = MULTIPLIER * ELEM_WIDTH - offset * ELEM_WIDTH;
     },
-    setScales() {
-      // console.log(window.innerHeight);
-      // console.log(this.$refs.reload);
-      // console.log(this.$refs.container);
-      this.setRows();
-      this.containerWidth = this.$refs.container.offsetWidth;
-
-      const MIN_ELEM_WIDTH = 200;
-      let divider = 1;
-
-      while (this.containerWidth / divider >= MIN_ELEM_WIDTH) {
-        divider++;
-      }
-
-      this.maxScale = divider;
-      this.scale = Math.floor(this.maxScale / 2);
-    },
-    onHideLightbox() {
-      this.setLightboxIndex(-1);
-    },
-    onPrevSlide() {
-      this.setLightboxIndex(this.lightboxIndex - 1);
-      this.scrollToLightboxIndex();
-    },
-    onNextSlide() {
-      this.setLightboxIndex(this.lightboxIndex + 1);
-      this.scrollToLightboxIndex();
-    },
-    onKeyUp(e) {
-      const { key } = e;
-
-      if (!this.toShowImg) {
-        return;
-      }
-
-      if (key == 'ArrowUp') {
-        this.onHideLightbox();
-      }
-
-      if (key == 'ArrowLeft' && this.toShowPrev) {
-        this.onPrevSlide();
-        return;
-      }
-
-      if (key == 'ArrowRight' && this.toShowNext) {
-        this.onNextSlide();
-        return;
-      }
-    },
-    onResize() {
-      console.log('RESIZED');
-      const $vm = this;
-      const TIMEOUT_ID = setTimeout(() => {
-        $vm.setScales();
-        clearTimeout(TIMEOUT_ID);
-      }, 500);
-    },
-    onShrinkScale() {
-      if (this.scale > this.minScale) {
-        this.scale--;
-      }
-    },
-    onGrowScale() {
-      if (this.scale < this.maxScale) {
-        this.scale++;
-      }
-    },
-    onWheel(e) {
+    scrollTo(dir) {
       if (!this.items.length) {
         return;
       }
@@ -337,7 +264,7 @@ export default {
       const $container = this.$refs.container;
       const ELEM_WIDTH = this.$refs.items[0].$el.offsetWidth;
       const DIFF = $container.scrollLeft % ELEM_WIDTH;
-      const MULTIPLIER = e.deltaY > 0 ? 1 : -1;
+      const MULTIPLIER = dir > 0 ? 1 : -1;
 
       // console.log('------------------------------------');
       // console.log('scrollLeft: ' + $container.scrollLeft);
@@ -358,6 +285,102 @@ export default {
       // console.log('step:       ' + step);
 
       $container.scrollLeft += MULTIPLIER * step;
+    },
+    setScales() {
+      // console.log(window.innerHeight);
+      // console.log(this.$refs.reload);
+      // console.log(this.$refs.container);
+      this.containerWidth = this.$refs.container.offsetWidth;
+
+      const MIN_ELEM_WIDTH = 200;
+      let divider = 1;
+
+      while (this.containerWidth / divider >= MIN_ELEM_WIDTH) {
+        divider++;
+      }
+
+      this.maxScale = divider;
+
+      if (this.scale > this.maxScale) {
+        this.scale = this.maxScale;
+      }
+    },
+    onHideLightbox() {
+      this.setLightboxIndex(-1);
+      document.body.style.overflow = '';
+    },
+    onPrevSlide() {
+      this.setLightboxIndex(this.lightboxIndex - 1);
+      this.scrollToLightboxIndex();
+    },
+    onNextSlide() {
+      this.setLightboxIndex(this.lightboxIndex + 1);
+      this.scrollToLightboxIndex();
+    },
+    onKey(e) {
+      e.preventDefault();
+      const { key } = e;
+      const STEP = 150;
+
+      if (key == 'ArrowUp') {
+        if (this.toShowImg) {
+          this.onHideLightbox();
+        } else {
+          window.scrollBy(0, -STEP);
+        }
+        return;
+      }
+
+      if (key == 'ArrowDown') {
+        if (this.toShowImg) {
+          this.onHideLightbox();
+        } else {
+          window.scrollBy(0, STEP);
+        }
+        return;
+      }
+
+      if (key == 'ArrowLeft') {
+        if (this.toShowImg && this.toShowPrev) {
+          this.onPrevSlide();
+        } else {
+          this.scrollTo(-1);
+        }
+        return;
+      }
+
+      if (key == 'ArrowRight') {
+        if (this.toShowImg && this.toShowNext) {
+          this.onNextSlide();
+        } else {
+          this.scrollTo(1);
+        }
+        return;
+      }
+    },
+    onResize() {
+      console.log('RESIZED');
+      const $vm = this;
+      const TIMEOUT_ID = setTimeout(() => {
+        $vm.setRows();
+        if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {
+          $vm.setScales();
+        }
+        clearTimeout(TIMEOUT_ID);
+      }, 500);
+    },
+    onShrinkScale() {
+      if (this.scale > this.minScale) {
+        this.scale--;
+      }
+    },
+    onGrowScale() {
+      if (this.scale < this.maxScale) {
+        this.scale++;
+      }
+    },
+    onWheel(e) {
+      this.scrollTo(e.deltaY > 0 ? 1 : -1);
     },
     onCancelFormSubmit() {
       return false;
@@ -387,12 +410,13 @@ export default {
   },
   mounted() {
     window.addEventListener('resize', this.onResize);
-    document.addEventListener('keyup', this.onKeyUp);
+    document.addEventListener('keydown', this.onKey);
+    this.setRows();
     this.setScales();
   },
   beforeDestroy() {
-    window.removeEventListener('resize');
-    document.removeEventListener('keyup');
+    window.removeEventListener('resize', this.onResize);
+    document.removeEventListener('keydown', this.onKey);
   },
 };
 </script>

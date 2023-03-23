@@ -25,8 +25,8 @@ b-col(
       b-icon(:icon='labelIcon', aria-hidden='true')
       | {{ labelText }}
     b-button-toolbar(v-if='!isAddingItem')
-      b-button-group.mx-1(v-if='isNotFirst')
-        CtrlButton(variant='info', title='<', :handle='onRenameToPrev')
+      //- b-button-group.mx-1(v-if='isNotFirst')
+      //-   CtrlButton(variant='info', title='<', :handle='onRenameToPrev')
       b-button-group.mx-1
         //- CtrlButton(:variant='' :title='"Replace " + name', :handle='onReplace')
         CtrlButton(:for='replaceID', tag='label', icon='cloud-upload')
@@ -36,8 +36,8 @@ b-col(
           variant='danger',
           :handle='onDelete'
         )
-      b-button-group.mx-1(v-if='isNotLast')
-        CtrlButton(variant='info', title='>', :handle='onRenameToNext')
+      //- b-button-group.mx-1(v-if='isNotLast')
+      //-   CtrlButton(variant='info', title='>', :handle='onRenameToNext')
 </template>
 
 <script>
@@ -197,7 +197,8 @@ export default {
     },
     onShowLightbox() {
       this.setLightboxIndex(this.index);
-      this.$parent.scrollToLightboxIndex();
+      document.body.style.overflow = 'hidden';
+      // this.$parent.scrollToLightboxIndex();
     },
     onDragStart(e) {
       const dt = e.dataTransfer;
