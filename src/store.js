@@ -3,11 +3,28 @@ import Vuex from 'vuex';
 
 Vue.use(Vuex);
 
+function isLargerFirst(index) {
+  return index > 0;
+}
+
+function isLessLast(index, array) {
+  return index < array.length - 1;
+}
+
 export default new Vuex.Store({
   state: {
     items: [],
     lightboxIndex: -1,
     lastTopID: 0,
+  },
+  getters: {
+    toShowPrev(state) {
+      return isLargerFirst(state.lightboxIndex);
+    },
+    toShowNext(state) {
+      const { lightboxIndex, items } = state;
+      return isLessLast(lightboxIndex, items);
+    },
   },
   mutations: {
     setItems(state, data) {
@@ -15,6 +32,20 @@ export default new Vuex.Store({
     },
     setLightboxIndex(state, value) {
       state.lightboxIndex = value;
+    },
+    clearLightboxIndex(state) {
+      state.lightboxIndex = -1;
+    },
+    decLightboxIndex(state) {
+      if (isLargerFirst(state.lightboxIndex)) {
+        state.lightboxIndex--;
+      }
+    },
+    incLightboxIndex(state) {
+      const { lightboxIndex, items } = state;
+      if (isLessLast(lightboxIndex, items)) {
+        state.lightboxIndex++;
+      }
     },
     setLastTopID(state, value) {
       state.lastTopID = value;

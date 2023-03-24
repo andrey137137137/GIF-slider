@@ -49,24 +49,38 @@ const getTempPath = (dir, layer = -1) => {
   return path.join(process.cwd(), uploadPath);
 };
 
-const upload = (req, res, dir = '', layer = -1) => {
-  const form = new IncomingForm();
+const upload = (req, res, existName = '', dir = '', layer = -1) => {
+  const TEMP_PATH = getTempPath(dir, layer);
+  console.log(TEMP_PATH);
 
-  form.uploadDir = getTempPath(dir, layer);
-  form.parse(req, (err, fields, files) => {
-    if (err) {
+  fs.access(path.join(TEMP_PATH, existName), fs.constants.F_OK, err => {
+    if (!err) {
+      console.log(err);
       return res.status(ERROR).json({
-        message: 'Не удалось загрузить изображение',
+        message: 'Файл ' + existName + ' уже существует',
       });
     }
 
-    const filePath = files.image.path;
-    const fileName = files.image.name;
+    console.error('file does not exists');
 
-    fs.rename(filePath, path.join(uploadPath, fileName), err => {
-      sendMessage(res, err, {
-        success: 'Изображение успешно добавлено',
-        error: 'Не удалось переместить изображение',
+    const form = new IncomingForm();
+
+    form.uploadDir = TEMP_PATH;
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        return res.status(ERROR).json({
+          message: 'Не удалось загрузить изображение',
+        });
+      }
+
+      const filePath = files.image.path;
+      const fileName = files.image.name;
+
+      fs.rename(filePath, path.join(uploadPath, fileName), err => {
+        sendMessage(res, err, {
+          success: 'Изображение успешно добавлено',
+          error: 'Не удалось переместить изображение',
+        });
       });
     });
   });
@@ -130,22 +144,35 @@ const load = (req, res) => {
       });
       return;
     }
-    const sortedFiles = files.sort(
-      (a, b) => parseInt(a.name) - parseInt(b.name),
-    );
+    const sortedFiles = files.sort((a, b) => {
+      // const A = parseInt(a.name);
+      // const B = parseInt(b.name);
+      // console.log('A = ' + A + ' and B = ' + B);
+      return parseInt(a.name) - parseInt(b.name);
+    });
     res.status(SUCCESS).json(sortedFiles);
   });
 };
 
 const rename = (res, oldName, newName, dir = '', layer = -1) => {
   setUploadPath(dir, layer);
-  const OLD_PATH = path.join(uploadPath, oldName);
   const NEW_PATH = path.join(uploadPath, newName);
 
-  fs.rename(OLD_PATH, NEW_PATH, err => {
-    sendMessage(res, err, {
-      success: 'Изображение успешно переименовано',
-      error: 'Не удалось переименовать изображение',
+  fs.access(NEW_PATH, fs.constants.F_OK, err => {
+    if (!err) {
+      console.log(err);
+      return res.status(ERROR).json({
+        message: 'Файл ' + newName + ' уже существует',
+      });
+    }
+
+    const OLD_PATH = path.join(uploadPath, oldName);
+
+    fs.rename(OLD_PATH, NEW_PATH, err => {
+      sendMessage(res, err, {
+        success: 'Изображение успешно переименовано',
+        error: 'Не удалось переименовать изображение',
+      });
     });
   });
 };

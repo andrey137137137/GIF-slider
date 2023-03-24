@@ -23,7 +23,7 @@
     b-container#container.pl-0.d-flex.flex-nowrap.justify-content-start.list.slider-frames(
       :style='containerStyle',
       ref='container',
-      @wheel.prevent='onWheel',
+      @wheel.prevent='onContainerWheel',
       @keyup.prevent='',
       @keydown.prevent='',
       fluid
@@ -47,7 +47,7 @@
         )
       b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
         DropItem(:scale='scale', :style='elemStyle')
-  .slider-main(v-show='toShowLightbox')
+  .slider-main(v-show='toShowLightbox', @wheel.prevent='onLightboxWheel')
     .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
     .slider-nav.slider-nav--prev(
@@ -67,7 +67,7 @@ import axios from 'axios';
 import dropMixin from '@/dropMixin';
 import DropItem from '@components/DropItem';
 import CtrlButton from '@components/CtrlButton';
-import { mapState, mapMutations } from 'vuex';
+import { mapState, mapGetters, mapMutations } from 'vuex';
 
 export default {
   name: 'App',
@@ -91,6 +91,7 @@ export default {
   },
   computed: {
     ...mapState(['items', 'lightboxIndex']),
+    ...mapGetters(['toShowPrev', 'toShowNext']),
     isNotOneCol() {
       return this.cols > 1;
     },
@@ -159,19 +160,10 @@ export default {
     areCompleteGroups() {
       return this.items.length % this.groupSize == 0;
     },
-    toShowImg() {
-      return this.lightboxIndex >= 0;
-    },
     slideNavStyles() {
       return {
         width: Math.ceil(this.containerInnerWidth / 8) + 'px',
       };
-    },
-    toShowPrev() {
-      return this.lightboxIndex > 0;
-    },
-    toShowNext() {
-      return this.lightboxIndex < this.items.length - 1;
     },
     lightBoxSrc() {
       if (!this.toShowLightbox) {
@@ -184,7 +176,9 @@ export default {
   methods: {
     ...mapMutations([
       'setItems',
-      'setLightboxIndex',
+      'clearLightboxIndex',
+      'decLightboxIndex',
+      'incLightboxIndex',
       'setLastTopID',
       'decLastTopID',
     ]),
@@ -232,6 +226,7 @@ export default {
       this.rows = !TEMP ? 1 : TEMP;
     },
     scrollToLightboxIndex() {
+      console.log('scrollToLightboxIndex');
       const $container = this.$refs.container;
       const ELEM_WIDTH = this.$refs.items[0].$el.offsetWidth;
       const GROUP_INDEX = Math.floor(this.lightboxIndex / this.groupSize);
@@ -257,6 +252,7 @@ export default {
       $container.scrollLeft = MULTIPLIER * ELEM_WIDTH - offset * ELEM_WIDTH;
     },
     scrollTo(dir) {
+      console.log('scrollTo');
       if (!this.items.length) {
         return;
       }
@@ -306,15 +302,15 @@ export default {
       }
     },
     onHideLightbox() {
-      this.setLightboxIndex(-1);
+      this.clearLightboxIndex();
       document.body.style.overflow = '';
     },
     onPrevSlide() {
-      this.setLightboxIndex(this.lightboxIndex - 1);
+      this.decLightboxIndex();
       this.scrollToLightboxIndex();
     },
     onNextSlide() {
-      this.setLightboxIndex(this.lightboxIndex + 1);
+      this.incLightboxIndex();
       this.scrollToLightboxIndex();
     },
     onKey(e) {
@@ -323,7 +319,7 @@ export default {
       const STEP = 150;
 
       if (key == 'ArrowUp') {
-        if (this.toShowImg) {
+        if (this.toShowLightbox) {
           this.onHideLightbox();
         } else {
           window.scrollBy(0, -STEP);
@@ -332,7 +328,7 @@ export default {
       }
 
       if (key == 'ArrowDown') {
-        if (this.toShowImg) {
+        if (this.toShowLightbox) {
           this.onHideLightbox();
         } else {
           window.scrollBy(0, STEP);
@@ -341,7 +337,7 @@ export default {
       }
 
       if (key == 'ArrowLeft') {
-        if (this.toShowImg && this.toShowPrev) {
+        if (this.toShowLightbox) {
           this.onPrevSlide();
         } else {
           this.scrollTo(-1);
@@ -350,7 +346,7 @@ export default {
       }
 
       if (key == 'ArrowRight') {
-        if (this.toShowImg && this.toShowNext) {
+        if (this.toShowLightbox) {
           this.onNextSlide();
         } else {
           this.scrollTo(1);
@@ -379,8 +375,15 @@ export default {
         this.scale++;
       }
     },
-    onWheel(e) {
+    onContainerWheel(e) {
       this.scrollTo(e.deltaY > 0 ? 1 : -1);
+    },
+    onLightboxWheel(e) {
+      if (e.deltaY > 0) {
+        this.onNextSlide();
+      } else {
+        this.onPrevSlide();
+      }
     },
     onCancelFormSubmit() {
       return false;

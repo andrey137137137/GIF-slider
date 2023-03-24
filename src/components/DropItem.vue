@@ -144,18 +144,26 @@ export default {
       const $vm = this;
       const ext = this.getExt(file.name);
       const TEMP_ID = isReplacing ? this.name : this.getTempID();
+      const IMAGE_NAME = TEMP_ID + ext;
+      const EXIST_NAME = isReplacing ? '' : IMAGE_NAME;
       const form = new FormData();
-      form.append('image', file, TEMP_ID + ext);
-      axios.post(this.uploadHost, form).then(() => {
-        /* Готово. Информируем пользователя */
-        if (isReplacing) {
-          $vm.replaceItem({ index, ext });
-        } else if ($vm.isAddingItem) {
-          $vm.addItem({ lastTopID: TEMP_ID, ext });
-        } else {
-          $vm.insertBeforeItem({ name: TEMP_ID, ext, index });
-        }
-      });
+      console.log(EXIST_NAME);
+      form.append('image', file, IMAGE_NAME);
+      axios
+        .post(this.uploadHost + '/' + EXIST_NAME, form)
+        .then(() => {
+          if (isReplacing) {
+            $vm.replaceItem({ index, ext });
+          } else if ($vm.isAddingItem) {
+            $vm.addItem({ lastTopID: TEMP_ID, ext });
+          } else {
+            $vm.insertBeforeItem({ name: TEMP_ID, ext, index });
+          }
+        })
+        .catch(res => {
+          console.log(res);
+          alert(res);
+        });
     },
     renameFile(objOrDir = 1) {
       const $vm = this;
@@ -169,6 +177,10 @@ export default {
         .get(this.uploadHost + '/' + IMAGE_NAME + '/' + TEMP_ID + EXT)
         .then(() => {
           $vm.$parent.onRefresh();
+        })
+        .catch(res => {
+          console.log(res);
+          alert(res);
         });
     },
     calcBeforeID(index = -1) {
