@@ -47,6 +47,7 @@
         )
       b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
         DropItem(:scale='scale', :style='elemStyle')
+  DropItem(:scale='maxScale')
   .slider-main(v-show='toShowLightbox', @wheel.prevent='onLightboxWheel')
     .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
@@ -80,7 +81,7 @@ export default {
     return {
       containerOuterWidth: 0,
       oneRowHeight: 395,
-      scale: 8,
+      scale: 2,
       curIndex: 0,
       minScale: 1,
       maxScale: 8,
@@ -376,13 +377,13 @@ export default {
       }
     },
     onContainerWheel(e) {
-      this.scrollTo(e.deltaY > 0 ? 1 : -1);
+      this.scrollTo(e.deltaY > 0 ? -1 : 1);
     },
     onLightboxWheel(e) {
       if (e.deltaY > 0) {
-        this.onNextSlide();
-      } else {
         this.onPrevSlide();
+      } else {
+        this.onNextSlide();
       }
     },
     onCancelFormSubmit() {

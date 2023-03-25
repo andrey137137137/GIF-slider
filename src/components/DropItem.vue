@@ -191,12 +191,23 @@ export default {
       let postfix = '1';
       let result = '';
 
+      // numbers: 48 - 57 , lower case: 97 - 122 , upper case: 65 - 90
+
       if (PREV_INDEX >= 0) {
         const prevIdParts = this.getIdParts(PREV_INDEX);
         const PREV_COUNT_PARTS = prevIdParts.length;
 
-        if (COUNT_PARTS - PREV_COUNT_PARTS < 0) {
+        if (COUNT_PARTS < PREV_COUNT_PARTS) {
           postfix = parseInt(prevIdParts[PREV_COUNT_PARTS - 1]) + 1;
+          // let code = prevIdParts[PREV_COUNT_PARTS - 1].charCodeAt(0) + 1;
+
+          // if (code == 58) {
+          //   code = 97;
+          // } else if (code == 123) {
+          //   code = 65;
+          // }
+
+          // postfix = String.fromCharCode(code);
         }
       }
 
