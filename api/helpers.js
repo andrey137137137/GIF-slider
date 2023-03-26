@@ -2,6 +2,7 @@ const IS_DEV = process.env.NODE_ENV !== 'production';
 const SERVER_PORT = process.env.PORT || 3000;
 const CLIENT_PORT = IS_DEV ? 5000 : SERVER_PORT;
 const CLIENT_PATH = 'client';
+const ID_SEPARATOR = '.';
 
 const deviceBreakpoints = [
   { name: 'xl', value: 1800 },
@@ -27,6 +28,10 @@ function getBreakpointsWithExcludes(exludes = []) {
 
   return breakpoints;
 }
+
+const getIdParts = str => {
+  return str.split(ID_SEPARATOR);
+};
 
 const exist = (property, obj = window) => {
   // return Object.prototype.hasOwnProperty.call(obj, property);
@@ -65,7 +70,9 @@ module.exports = {
   SERVER_PORT,
   CLIENT_PORT,
   CLIENT_PATH,
+  ID_SEPARATOR,
   deviceBreakpoints,
+  getIdParts,
   exist,
   getPositiveValue,
   getBreakpointNamesWithoutXL,

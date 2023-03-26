@@ -4,7 +4,7 @@ const fs = require('fs');
 const { waterfall, each, eachSeries } = require('async');
 const { UPLOAD_PATH } = require('@config').client;
 const { SUCCESS, ERROR } = require('@httpSt');
-const { exist } = require('@apiHelpers');
+const { getIdParts, exist } = require('@apiHelpers');
 const { sendError, sendResult } = require('@contr/crud');
 
 let uploadPath;
@@ -137,10 +137,6 @@ function getFiles(dirPath, cb) {
   });
 }
 
-function getIdParts(str) {
-  return str.split('.');
-}
-
 const load = (req, res) => {
   getFiles(UPLOAD_PATH, (err, files) => {
     if (err) {
@@ -150,27 +146,28 @@ const load = (req, res) => {
       return;
     }
     // const collator = new Intl.Collator('en');
-    const sortedFiles = files.sort((a, b) => {
-      const aIds = getIdParts(a.name);
-      const bIds = getIdParts(b.name);
-      let i = 0;
-      let result = 0;
+    res.status(SUCCESS).json(
+      files.sort((a, b) => {
+        const aIds = getIdParts(a.name);
+        const bIds = getIdParts(b.name);
+        let i = 0;
+        let result = 0;
 
-      while (exist(i, aIds) && exist(i, bIds)) {
-        result = parseInt(aIds[i]) - parseInt(bIds[i]);
+        while (exist(i, aIds) && exist(i, bIds)) {
+          result = parseInt(aIds[i]) - parseInt(bIds[i]);
 
-        if (result != 0) {
-          return result;
+          if (result != 0) {
+            return result;
+          }
+
+          i++;
         }
 
-        i++;
-      }
-
-      // console.log('A = ' + A + ' and B = ' + B);
-      // return parseInt(a.name) - parseInt(b.name);
-      return bIds.length - aIds.length;
-    });
-    res.status(SUCCESS).json(sortedFiles);
+        // console.log('A = ' + A + ' and B = ' + B);
+        // return parseInt(a.name) - parseInt(b.name);
+        return bIds.length - aIds.length;
+      }),
+    );
     // res.status(SUCCESS).json(files);
   });
 };

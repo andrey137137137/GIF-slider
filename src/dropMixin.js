@@ -1,3 +1,4 @@
+import { ID_SEPARATOR, getIdParts } from '@apiHelpers';
 import { SERVER_BASE_URL } from '@helpers';
 
 export default {
@@ -5,12 +6,12 @@ export default {
     return {
       uploadHost: SERVER_BASE_URL + 'image',
       isHighlighted: false,
-      separator: '.',
+      separator: ID_SEPARATOR,
     };
   },
   methods: {
     getIdParts(index) {
-      return this.items[index].name.split(this.separator);
+      return getIdParts(this.items[index].name);
     },
   },
 };

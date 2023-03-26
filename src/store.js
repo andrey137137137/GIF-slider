@@ -12,7 +12,9 @@ function isLessLast(index, array) {
 }
 
 export default new Vuex.Store({
+  strict: true,
   state: {
+    scale: 6,
     items: [],
     lightboxIndex: -1,
     lastTopID: 0,
@@ -27,6 +29,15 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    setScale(state, value) {
+      state.scale = value;
+    },
+    decScale(state) {
+      state.scale--;
+    },
+    incScale(state) {
+      state.scale++;
+    },
     setItems(state, data) {
       state.items = data;
     },

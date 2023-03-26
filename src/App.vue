@@ -12,7 +12,8 @@
     b-button-group.d-flex
       CtrlButton(variant='info', title='-', :handle='onShrinkScale')
       b-form-input(
-        v-model='scale',
+        :value='scale',
+        @input='setScale($event)',
         type='range',
         :min='minScale',
         :max='maxScale',
@@ -20,13 +21,13 @@
         @keydown.prevent=''
       )
       CtrlButton(variant='info', title='+', :handle='onGrowScale')
-    b-container#container.pl-0.d-flex.flex-nowrap.justify-content-start.list.slider-frames(
+    b-container#container.px-0.d-flex.flex-nowrap.justify-content-start.list.slider-frames(
+      fluid,
       :style='containerStyle',
       ref='container',
       @wheel.prevent='onContainerWheel',
       @keyup.prevent='',
-      @keydown.prevent='',
-      fluid
+      @keydown.prevent=''
     )
       b-row.slider-row.mx-0(
         v-for='(group, groupIndex) in groups',
@@ -36,18 +37,16 @@
           v-for='(item, cellIndex) in itemsByGroup(group)',
           :key='item.name',
           :index='indexByGroup(group, cellIndex)',
-          :scale='scale',
           :style='elemStyle',
           ref='items'
         )
         DropItem(
           v-if='isAddingItemInGroup(groupIndex, groups)',
-          :scale='scale',
           :style='elemStyle'
         )
       b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
-        DropItem(:scale='scale', :style='elemStyle')
-  DropItem(:scale='maxScale')
+        DropItem(:style='elemStyle')
+  DropItem
   .slider-main(v-show='toShowLightbox', @wheel.prevent='onLightboxWheel')
     .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
@@ -81,17 +80,15 @@ export default {
     return {
       containerOuterWidth: 0,
       oneRowHeight: 395,
-      scale: 2,
       curIndex: 0,
       minScale: 1,
       maxScale: 8,
       containerWidth: 0,
-      gutter: 0,
       rows: 1,
     };
   },
   computed: {
-    ...mapState(['items', 'lightboxIndex']),
+    ...mapState(['scale', 'items', 'lightboxIndex']),
     ...mapGetters(['toShowPrev', 'toShowNext']),
     isNotOneCol() {
       return this.cols > 1;
@@ -111,7 +108,13 @@ export default {
       return this.scalesConfig.cols;
     },
     containerInnerWidth() {
-      return this.containerWidth - this.gutter * 2;
+      const REST = this.containerWidth % this.cols;
+
+      if (REST) {
+        return this.containerWidth - REST;
+      }
+
+      return this.containerWidth;
     },
     containerStyle() {
       if (!this.items.length) {
@@ -176,6 +179,9 @@ export default {
   },
   methods: {
     ...mapMutations([
+      'setScale',
+      'decScale',
+      'incScale',
       'setItems',
       'clearLightboxIndex',
       'decLightboxIndex',
@@ -263,10 +269,15 @@ export default {
       const DIFF = $container.scrollLeft % ELEM_WIDTH;
       const MULTIPLIER = dir > 0 ? 1 : -1;
 
+      // if (X % COLS_WIDTH <= ELEM_WIDTH) {
+      //   DIFF = 0;
+      // }
+
       // console.log('------------------------------------');
       // console.log('scrollLeft: ' + $container.scrollLeft);
-      // console.log('ELEM_WIDTH: ' + ELEM_WIDTH);
-      // console.log('DIFF:       ' + DIFF);
+      console.log('ELEM_WIDTH: ' + ELEM_WIDTH);
+      console.log('DIFF:       ' + DIFF);
+      // console.log('X:          ' + X);
       // console.log('MULTIPLIER: ' + MULTIPLIER);
 
       let step;
@@ -368,12 +379,12 @@ export default {
     },
     onShrinkScale() {
       if (this.scale > this.minScale) {
-        this.scale--;
+        this.decScale();
       }
     },
     onGrowScale() {
       if (this.scale < this.maxScale) {
-        this.scale++;
+        this.incScale();
       }
     },
     onContainerWheel(e) {
@@ -413,6 +424,7 @@ export default {
     this.onRefresh();
   },
   mounted() {
+    console.log('mounted');
     window.addEventListener('resize', this.onResize);
     document.addEventListener('keydown', this.onKey);
     this.setRows();
