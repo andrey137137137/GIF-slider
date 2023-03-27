@@ -1,7 +1,7 @@
 <template lang="pug">
 b-col(
   :id='id',
-  :cols='scale',
+  :cols='cols',
   @dragstart='onDragStart($event)',
   @dblclick='onShowLightbox'
 )
@@ -52,8 +52,8 @@ export default {
   components: { FileInput, CtrlButton },
   mixins: [dropMixin],
   props: {
-    // scale: { type: [Number, String], require: true },
     index: { type: Number, default: -1 },
+    isSingle: { type: Boolean, default: false },
   },
   data() {
     return {
@@ -69,6 +69,9 @@ export default {
         return 0;
       }
       return this.items[this.index].name;
+    },
+    cols() {
+      return this.isSingle ? 12 : this.scale;
     },
     isNotFirst() {
       return this.index > 0;
@@ -158,6 +161,9 @@ export default {
             $vm.addItem({ lastTopID: TEMP_ID, ext });
           } else {
             $vm.insertBeforeItem({ name: TEMP_ID, ext, index });
+          }
+          if ($vm.isSingle) {
+            $vm.$parent.scrollToLastIndex();
           }
         })
         .catch(res => {

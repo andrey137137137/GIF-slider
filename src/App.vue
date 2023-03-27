@@ -22,6 +22,7 @@
       )
       CtrlButton(variant='info', title='+', :handle='onGrowScale')
     b-container#container.px-0.d-flex.flex-nowrap.justify-content-start.list.slider-frames(
+      v-show='items.length',
       fluid,
       :style='containerStyle',
       ref='container',
@@ -42,11 +43,11 @@
         )
         DropItem(
           v-if='isAddingItemInGroup(groupIndex, groups)',
-          :style='elemStyle'
+          :style='addingItemStyle'
         )
       b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
         DropItem(:style='elemStyle')
-  DropItem
+  DropItem(v-if='toShowSingleAddingItem', :isSingle='true')
   .slider-main(v-show='toShowLightbox', @wheel.prevent='onLightboxWheel')
     .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
@@ -93,6 +94,10 @@ export default {
     isNotOneCol() {
       return this.cols > 1;
     },
+    toShowSingleAddingItem() {
+      const { length } = this.items;
+      return !length || length >= this.cols;
+    },
     toShowLightbox() {
       return this.lightboxIndex >= 0;
     },
@@ -109,11 +114,9 @@ export default {
     },
     containerInnerWidth() {
       const REST = this.containerWidth % this.cols;
-
       if (REST) {
         return this.containerWidth - REST;
       }
-
       return this.containerWidth;
     },
     containerStyle() {
@@ -131,11 +134,19 @@ export default {
     elemWidth() {
       return Math.floor(this.containerInnerWidth / this.cols);
     },
+    addingItemStyle() {
+      const { length } = this.items;
+      const REST = length - (this.groups - 1) * this.groupSize;
+
+      if (REST < this.cols) {
+        return this.elemStyle;
+      }
+
+      const ROW_REST = length % this.groupSize;
+      return this.getStyleWidth((this.groupSize - ROW_REST) * this.elemWidth);
+    },
     elemStyle() {
-      return {
-        'min-width': this.withPx(this.elemWidth),
-        'max-width': this.withPx(this.elemWidth),
-      };
+      return this.getStyleWidth(this.elemWidth);
     },
     emptyGroupStyle() {
       return {
@@ -192,6 +203,12 @@ export default {
     withPx(value) {
       return value + 'px';
     },
+    getStyleWidth(width) {
+      return {
+        'min-width': this.withPx(width),
+        'max-width': this.withPx(width),
+      };
+    },
     isAddingItemInGroup(groupIndex, groups) {
       if (this.areCompleteGroups) {
         return false;
@@ -232,10 +249,16 @@ export default {
 
       this.rows = !TEMP ? 1 : TEMP;
     },
+    scrollToLastIndex() {
+      console.log('scrollToLastIndex');
+      const $container = this.$refs.container;
+      const ELEM_WIDTH = this.elemWidth;
+      $container.scrollLeft = $container.scrollWidth - ELEM_WIDTH;
+    },
     scrollToLightboxIndex() {
       console.log('scrollToLightboxIndex');
       const $container = this.$refs.container;
-      const ELEM_WIDTH = this.$refs.items[0].$el.offsetWidth;
+      const ELEM_WIDTH = this.elemWidth;
       const GROUP_INDEX = Math.floor(this.lightboxIndex / this.groupSize);
       const ELEM_INDEX = this.lightboxIndex % this.cols;
       const MULTIPLIER = GROUP_INDEX * this.cols + ELEM_INDEX;
@@ -265,7 +288,7 @@ export default {
       }
 
       const $container = this.$refs.container;
-      const ELEM_WIDTH = this.$refs.items[0].$el.offsetWidth;
+      const ELEM_WIDTH = this.elemWidth;
       const DIFF = $container.scrollLeft % ELEM_WIDTH;
       const MULTIPLIER = dir > 0 ? 1 : -1;
 
