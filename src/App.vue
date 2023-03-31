@@ -1,15 +1,15 @@
 <template lang="pug">
 #app.slider
-  b-button#reload(
-    style='display: block; text-align: center; font-size: 50px; line-height: 100px',
-    title='RELOAD',
-    @click.prevent='onRefresh',
-    ref='reload',
-    href='#'
-  )
-    b-icon(icon='cloud-download', aria-hidden='true')
+  //- b-button#reload(
+  //-   style='display: block; text-align: center; font-size: 50px; line-height: 100px',
+  //-   title='RELOAD',
+  //-   ref='reload',
+  //-   href='#',
+  //-   @click.prevent='onRefresh'
+  //- )
+  //-   b-icon(icon='cloud-download', aria-hidden='true')
   form.my-form(@submit.prevent='onCancelFormSubmit')
-    b-button-group.d-flex
+    b-button-group.d-flex.py-4
       CtrlButton(variant='info', title='-', :handle='onShrinkScale')
       b-form-input(
         :value='scale',
@@ -32,7 +32,7 @@
     )
       b-row.slider-row.mx-0(
         v-for='(group, groupIndex) in groups',
-        :style='groupStyle'
+        :style='groupStyle(groupIndex)'
       )
         DropItem(
           v-for='(item, cellIndex) in itemsByGroup(group)',
@@ -42,7 +42,7 @@
           ref='items'
         )
         DropItem(
-          v-if='isAddingItemInGroup(groupIndex, groups)',
+          v-if='isAddingItemInGroup(groupIndex)',
           :style='addingItemStyle'
         )
       b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
@@ -125,24 +125,18 @@ export default {
       }
       return 'overflow-x: scroll';
     },
-    groupStyle() {
-      return {
-        'min-width': this.containerInnerWidth + 'px',
-        // ...this.whenAlignItemsCenter(1),
-      };
+    lastGroupItemsCount() {
+      return this.items.length - (this.groups - 1) * this.groupSize;
     },
     elemWidth() {
       return Math.floor(this.containerInnerWidth / this.cols);
     },
     addingItemStyle() {
-      const { length } = this.items;
-      const REST = length - (this.groups - 1) * this.groupSize;
-
-      if (REST < this.cols) {
+      if (this.lastGroupItemsCount < this.cols) {
         return this.elemStyle;
       }
 
-      const ROW_REST = length % this.groupSize;
+      const ROW_REST = this.items.length % this.groupSize;
       return this.getStyleWidth((this.groupSize - ROW_REST) * this.elemWidth);
     },
     elemStyle() {
@@ -173,7 +167,11 @@ export default {
       return Math.ceil(this.items.length / this.groupSize);
     },
     areCompleteGroups() {
-      return this.items.length % this.groupSize == 0;
+      const { length } = this.items;
+      // if (!length) {
+      //   return false;
+      // }
+      return length && length % this.groupSize == 0;
     },
     slideNavStyles() {
       return {
@@ -209,11 +207,26 @@ export default {
         'max-width': this.withPx(width),
       };
     },
-    isAddingItemInGroup(groupIndex, groups) {
+    groupStyle(index) {
+      let width = this.containerInnerWidth;
+
+      if (
+        index == this.groups - 1 &&
+        this.lastGroupItemsCount < this.cols - 1
+      ) {
+        width = this.elemWidth * (this.lastGroupItemsCount + 1);
+      }
+
+      return {
+        'min-width': this.withPx(width),
+        // ...this.whenAlignItemsCenter(1),
+      };
+    },
+    isAddingItemInGroup(groupIndex) {
       if (this.areCompleteGroups) {
         return false;
       }
-      return groupIndex == groups - 1 && this.isNotOneCol;
+      return groupIndex == this.groups - 1 && this.isNotOneCol;
     },
     whenAlignItemsCenter(rows) {
       return {
@@ -242,11 +255,11 @@ export default {
       return index + this.getGroupStartIndex(group);
     },
     setRows() {
-      const TEMP = Math.floor(
-        (window.innerHeight - this.$refs.reload.$el.offsetHeight) /
-          this.oneRowHeight,
-      );
-
+      // const TEMP = Math.floor(
+      //   (window.innerHeight - this.$refs.reload.$el.offsetHeight) /
+      //     this.oneRowHeight,
+      // );
+      const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
       this.rows = !TEMP ? 1 : TEMP;
     },
     scrollToLastIndex() {
