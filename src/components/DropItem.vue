@@ -278,12 +278,7 @@ export default {
       this.uploadFile(e.target.files[0], true);
     },
     onDelete() {
-      if (confirm('To delete ' + this.imageName + '?')) {
-        const $vm = this;
-        axios.delete($vm.uploadHost + '/' + $vm.imageName).then(() => {
-          $vm.deleteItem($vm.index);
-        });
-      }
+      this.delete(this.index);
     },
   },
 };

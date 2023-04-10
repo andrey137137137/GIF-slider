@@ -401,6 +401,11 @@ export default {
         }
         return;
       }
+
+      if (key == 'Delete') {
+        console.log(key);
+        this.delete(this.lightboxIndex);
+      }
     },
     onResize() {
       console.log('RESIZED');

@@ -77,6 +77,9 @@ export default new Vuex.Store({
       state.items.push({ name: lastTopID + '', ext });
     },
     deleteItem(state, index) {
+      if (state.lightboxIndex == state.items.length - 1) {
+        state.lightboxIndex--;
+      }
       state.items.splice(index, 1);
     },
   },
