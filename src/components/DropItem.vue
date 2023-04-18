@@ -201,7 +201,7 @@ export default {
         const prevIdParts = this.getIdParts(PREV_INDEX);
         const PREV_COUNT_PARTS = prevIdParts.length;
 
-        if (COUNT_PARTS < PREV_COUNT_PARTS) {
+        if (PREV_COUNT_PARTS - COUNT_PARTS == 1) {
           const DIFF = PREV_COUNT_PARTS - COUNT_PARTS;
           const PART_INDEX = PREV_COUNT_PARTS - DIFF;
           postfix = parseInt(prevIdParts[PART_INDEX]) + 1;
