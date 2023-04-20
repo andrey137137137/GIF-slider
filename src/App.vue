@@ -45,9 +45,9 @@
           v-if='isAddingItemInGroup(groupIndex)',
           :style='addingItemStyle'
         )
-      b-row.slider-row.mx-0(v-if='areCompleteGroups', :style='emptyGroupStyle')
+      b-row.slider-row.mx-0(v-if='isEmptyGroup', :style='emptyGroupStyle')
         DropItem(:style='elemStyle')
-  DropItem(v-if='toShowSingleAddingItem', :isSingle='true')
+  DropItem(v-if='isSingleAddingItem', :isSingle='true')
   .slider-main(v-show='toShowLightbox', @wheel.prevent='onLightboxWheel')
     .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
@@ -94,10 +94,6 @@ export default {
     isNotOneCol() {
       return this.cols > 1;
     },
-    toShowSingleAddingItem() {
-      const { length } = this.items;
-      return !length || length >= this.cols;
-    },
     toShowLightbox() {
       return this.lightboxIndex >= 0;
     },
@@ -106,8 +102,8 @@ export default {
     },
     scalesConfig() {
       const cols = this.maxScale - this.scale + 1;
-      const rows = cols > 3 ? 2 : 1;
-      return { rows, cols };
+      // const rows = cols > 3 ? 2 : 1;
+      return { rows: this.rows, cols };
     },
     cols() {
       return this.scalesConfig.cols;
@@ -151,9 +147,9 @@ export default {
     groupSize() {
       // return this.scalesConfig.rows * this.cols;
 
-      if (this.rows == 1) {
-        return this.cols;
-      }
+      // if (this.rows == 1) {
+      //   return this.cols;
+      // }
 
       // const { rows } = this.scalesConfig;
 
@@ -172,6 +168,19 @@ export default {
       //   return false;
       // }
       return length && length % this.groupSize == 0;
+    },
+    isSingleAddingItem() {
+      const { length } = this.items;
+      if (!length) {
+        return true;
+      }
+      // if (this.rows > 1) {
+      //   return false;
+      // }
+      return length >= this.cols;
+    },
+    isEmptyGroup() {
+      return !this.isSingleAddingItem && this.areCompleteGroups;
     },
     slideNavStyles() {
       return {
@@ -223,7 +232,7 @@ export default {
       };
     },
     isAddingItemInGroup(groupIndex) {
-      if (this.areCompleteGroups) {
+      if (this.areCompleteGroups || this.isSingleAddingItem) {
         return false;
       }
       return groupIndex == this.groups - 1 && this.isNotOneCol;
