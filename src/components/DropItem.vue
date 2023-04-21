@@ -163,7 +163,9 @@ export default {
             $vm.insertBeforeItem({ name: TEMP_ID, ext, index });
           }
           if ($vm.isSingle) {
-            $vm.$parent.scrollToLastIndex();
+            $vm.$nextTick(() => {
+              $vm.$parent.scrollToLastIndex();
+            });
           }
         })
         .catch(res => {

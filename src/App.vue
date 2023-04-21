@@ -80,6 +80,7 @@ export default {
       containerWidth: 0,
       rows: 1,
       timeoutId: 0,
+      sdfgdfg: true,
     };
   },
   computed: {
@@ -164,14 +165,15 @@ export default {
       return length && length % this.groupSize == 0;
     },
     isSingleAddingItem() {
-      const { length } = this.items;
-      if (!length) {
-        return true;
-      }
-      // if (this.rows > 1) {
-      //   return false;
+      // const { length } = this.items;
+      // if (!length) {
+      //   return true;
       // }
-      return length >= this.cols;
+      // // if (this.rows > 1) {
+      // //   return false;
+      // // }
+      // return length >= this.cols;
+      return true;
     },
     isEmptyGroup() {
       return !this.isSingleAddingItem && this.areCompleteGroups;
@@ -222,11 +224,12 @@ export default {
         // ...this.whenAlignItemsCenter(1),
       };
     },
-    isAddingItemInGroup(groupIndex) {
-      if (this.areCompleteGroups || this.isSingleAddingItem) {
-        return false;
-      }
-      return groupIndex == this.groups - 1 && this.isNotOneCol;
+    isAddingItemInGroup() {
+      return false;
+      // if (this.areCompleteGroups || this.isSingleAddingItem) {
+      //   return false;
+      // }
+      // return groupIndex == this.groups - 1 && this.isNotOneCol;
     },
     whenAlignItemsCenter(rows) {
       return {
@@ -254,17 +257,10 @@ export default {
     indexByGroup(group, index) {
       return index + this.getGroupStartIndex(group);
     },
-    setRows() {
-      // const TEMP = Math.floor(
-      //   (window.innerHeight - this.$refs.reload.$el.offsetHeight) /
-      //     this.oneRowHeight,
-      // );
-      const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
-      this.rows = !TEMP ? 1 : TEMP;
-    },
     scrollToLastIndex() {
       console.log('scrollToLastIndex');
       const $container = this.$refs.container;
+      console.log($container.scrollWidth);
       $container.scrollLeft = $container.scrollWidth;
     },
     scrollToLightboxIndex() {
@@ -329,6 +325,14 @@ export default {
 
       $container.scrollLeft += MULTIPLIER * step;
     },
+    setRows() {
+      // const TEMP = Math.floor(
+      //   (window.innerHeight - this.$refs.reload.$el.offsetHeight) /
+      //     this.oneRowHeight,
+      // );
+      const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
+      this.rows = !TEMP ? 1 : TEMP;
+    },
     setScales() {
       // console.log(window.innerHeight);
       // console.log(this.$refs.reload);
@@ -347,6 +351,19 @@ export default {
       if (this.scale > this.maxScale) {
         this.setScale(this.maxScale);
       }
+    },
+    setMaxItemHeight() {
+      if (!this.items.length) {
+        return;
+      }
+      const $vm = this;
+      console.log($vm.$refs.items[0].$el.offsetHeight);
+      $vm.$refs.items.forEach($item => {
+        const { offsetHeight } = $item.$el;
+        if ($vm.maxItemHeight < offsetHeight) {
+          $vm.maxItemHeight = offsetHeight;
+        }
+      });
     },
     onHideLightbox() {
       this.clearLightboxIndex();
@@ -406,17 +423,6 @@ export default {
         this.delete(this.lightboxIndex);
       }
     },
-    onResize() {
-      clearTimeout(this.timeoutId);
-      const $vm = this;
-      this.timeoutId = setTimeout(() => {
-        console.log('RESIZED');
-        $vm.setRows();
-        if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {
-          $vm.setScales();
-        }
-      }, 500);
-    },
     onShrinkScale() {
       if (this.scale > this.minScale) {
         this.decScale();
@@ -440,15 +446,6 @@ export default {
     onCancelFormSubmit() {
       return false;
     },
-    setMaxItemHeight() {
-      const $vm = this;
-      $vm.$refs.items.forEach($item => {
-        const { offsetHeight } = $item.$el;
-        if ($vm.maxItemHeight < offsetHeight) {
-          $vm.maxItemHeight = offsetHeight;
-        }
-      });
-    },
     onRefresh() {
       const $vm = this;
       axios.get(this.uploadHost).then(res => {
@@ -468,6 +465,17 @@ export default {
         }
       });
     },
+    onResize() {
+      clearTimeout(this.timeoutId);
+      const $vm = this;
+      this.timeoutId = setTimeout(() => {
+        console.log('RESIZED');
+        $vm.setRows();
+        if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {
+          $vm.setScales();
+        }
+      }, 500);
+    },
   },
   created() {
     this.onRefresh();
@@ -478,9 +486,13 @@ export default {
     this.setRows();
     this.setScales();
   },
-  // beforeUpdate() {
-  //   this.setMaxItemHeight();
-  // },
+  beforeUpdate() {
+    const $vm = this;
+    $vm.$nextTick(() => {
+      console.log('beforeUpdate');
+      $vm.setMaxItemHeight();
+    });
+  },
   beforeDestroy() {
     window.removeEventListener('resize', this.onResize);
     document.removeEventListener('keydown', this.onKey);
