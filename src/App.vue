@@ -1,13 +1,5 @@
 <template lang="pug">
 #app.slider
-  //- b-button#reload(
-  //-   style='display: block; text-align: center; font-size: 50px; line-height: 100px',
-  //-   title='RELOAD',
-  //-   ref='reload',
-  //-   href='#',
-  //-   @click.prevent='onRefresh'
-  //- )
-  //-   b-icon(icon='cloud-download', aria-hidden='true')
   form.my-form(@submit.prevent='onCancelFormSubmit')
     b-button-group.d-flex.py-4
       CtrlButton(variant='info', title='-', :handle='onShrinkScale')
@@ -79,6 +71,7 @@ export default {
   mixins: [dropMixin],
   data() {
     return {
+      maxItemHeight: 0,
       containerOuterWidth: 0,
       oneRowHeight: 395,
       curIndex: 0,
@@ -86,6 +79,7 @@ export default {
       maxScale: 8,
       containerWidth: 0,
       rows: 1,
+      timeoutId: 0,
     };
   },
   computed: {
@@ -102,8 +96,8 @@ export default {
     },
     scalesConfig() {
       const cols = this.maxScale - this.scale + 1;
-      // const rows = cols > 3 ? 2 : 1;
-      return { rows: this.rows, cols };
+      const rows = cols > 3 ? 2 : 1;
+      return { rows: rows, cols };
     },
     cols() {
       return this.scalesConfig.cols;
@@ -147,9 +141,9 @@ export default {
     groupSize() {
       // return this.scalesConfig.rows * this.cols;
 
-      // if (this.rows == 1) {
-      //   return this.cols;
-      // }
+      if (this.rows == 1) {
+        return this.cols;
+      }
 
       // const { rows } = this.scalesConfig;
 
@@ -219,11 +213,8 @@ export default {
     groupStyle(index) {
       let width = this.containerInnerWidth;
 
-      if (
-        index == this.groups - 1 &&
-        this.lastGroupItemsCount < this.cols - 1
-      ) {
-        width = this.elemWidth * (this.lastGroupItemsCount + 1);
+      if (index == this.groups - 1 && this.lastGroupItemsCount < this.cols) {
+        width = this.elemWidth * this.lastGroupItemsCount;
       }
 
       return {
@@ -274,8 +265,7 @@ export default {
     scrollToLastIndex() {
       console.log('scrollToLastIndex');
       const $container = this.$refs.container;
-      const ELEM_WIDTH = this.elemWidth;
-      $container.scrollLeft = $container.scrollWidth - ELEM_WIDTH;
+      $container.scrollLeft = $container.scrollWidth;
     },
     scrollToLightboxIndex() {
       console.log('scrollToLightboxIndex');
@@ -355,7 +345,7 @@ export default {
       this.maxScale = divider;
 
       if (this.scale > this.maxScale) {
-        this.scale = this.maxScale;
+        this.setScale(this.maxScale);
       }
     },
     onHideLightbox() {
@@ -417,14 +407,14 @@ export default {
       }
     },
     onResize() {
-      console.log('RESIZED');
+      clearTimeout(this.timeoutId);
       const $vm = this;
-      const TIMEOUT_ID = setTimeout(() => {
+      this.timeoutId = setTimeout(() => {
+        console.log('RESIZED');
         $vm.setRows();
         if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {
           $vm.setScales();
         }
-        clearTimeout(TIMEOUT_ID);
       }, 500);
     },
     onShrinkScale() {
@@ -450,6 +440,15 @@ export default {
     onCancelFormSubmit() {
       return false;
     },
+    setMaxItemHeight() {
+      const $vm = this;
+      $vm.$refs.items.forEach($item => {
+        const { offsetHeight } = $item.$el;
+        if ($vm.maxItemHeight < offsetHeight) {
+          $vm.maxItemHeight = offsetHeight;
+        }
+      });
+    },
     onRefresh() {
       const $vm = this;
       axios.get(this.uploadHost).then(res => {
@@ -474,12 +473,14 @@ export default {
     this.onRefresh();
   },
   mounted() {
-    console.log('mounted');
     window.addEventListener('resize', this.onResize);
     document.addEventListener('keydown', this.onKey);
     this.setRows();
     this.setScales();
   },
+  // beforeUpdate() {
+  //   this.setMaxItemHeight();
+  // },
   beforeDestroy() {
     window.removeEventListener('resize', this.onResize);
     document.removeEventListener('keydown', this.onKey);
