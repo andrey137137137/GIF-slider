@@ -45,7 +45,7 @@
         )
       b-row.slider-row.mx-0(v-if='isEmptyGroup', :style='emptyGroupStyle')
         DropItem(:style='elemStyle')
-  DropItem(v-if='isSingleAddingItem', :isSingle='true')
+  DropItem(v-if='isSingleAddingItem', :isSingle='true', ref='bottom')
   .slider-main(v-show='toShowLightbox', @wheel.prevent='onLightboxWheel')
     .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
@@ -77,20 +77,20 @@ export default {
   mixins: [dropMixin],
   data() {
     return {
-      maxItemHeight: 0,
       containerOuterWidth: 0,
       oneRowHeight: 395,
       curIndex: 0,
       minScale: 1,
       maxScale: 8,
       containerWidth: 0,
-      rows: 1,
+      screenHeight: 0,
+      tempRows: 1,
       timeoutId: 0,
       toShowAddItemInGroup: false,
     };
   },
   computed: {
-    ...mapState(['scale', 'items', 'lightboxIndex']),
+    ...mapState(['maxItemHeight', 'scale', 'items', 'lightboxIndex']),
     ...mapGetters(['toShowPrev', 'toShowNext']),
     isNotOneCol() {
       return this.cols > 1;
@@ -103,8 +103,28 @@ export default {
     },
     scalesConfig() {
       const cols = this.maxScale - this.scale + 1;
-      const rows = cols > 3 ? 2 : 1;
-      return { rows: rows, cols };
+      let rows = 0;
+
+      if (!this.screenHeight || !this.maxItemHeight) {
+        rows = cols > 3 ? 2 : 1;
+      } else {
+        const BOTTOM_HEIGHT = this.isSingleAddingItem
+          ? this.$refs.bottom.$el.offsetHeight
+          : 0;
+        const REST_HEIGHT =
+          this.screenHeight - this.$refs.top.offsetHeight - BOTTOM_HEIGHT;
+
+        rows = Math.floor(REST_HEIGHT / this.maxItemHeight);
+        rows = !rows ? 1 : rows;
+      }
+
+      // const TEMP_ROWS = cols > 3 ? 2 : 1;
+      // return { rows: TEMP_ROWS, cols };
+
+      return { rows, cols };
+    },
+    rows() {
+      return this.scalesConfig.rows;
     },
     cols() {
       return this.scalesConfig.cols;
@@ -142,23 +162,21 @@ export default {
     emptyGroupStyle() {
       return {
         ...this.elemStyle,
-        // ...this.whenAlignItemsCenter(this.scalesConfig.rows),
+        // ...this.whenAlignItemsCenter(this.rows),
       };
     },
     groupSize() {
-      // return this.scalesConfig.rows * this.cols;
+      // return this.rows * this.cols;
 
-      if (this.rows == 1) {
+      if (this.tempRows == 1) {
         return this.cols;
       }
 
-      // const { rows } = this.scalesConfig;
-
-      // if (this.rows > rows) {
-      //   return this.rows * this.cols;
+      // if (this.tempRows > this.rows) {
+      //   return this.tempRows * this.cols;
       // }
 
-      return this.scalesConfig.rows * this.cols;
+      return this.rows * this.cols;
     },
     groups() {
       return Math.ceil(this.items.length / this.groupSize);
@@ -232,7 +250,7 @@ export default {
     },
     whenAlignItemsCenter(rows) {
       return {
-        'align-items': this.scalesConfig.rows == rows ? 'center' : 'start',
+        'align-items': this.rows == rows ? 'center' : 'start',
       };
     },
     getGroupFinalIndex(groupIndex) {
@@ -324,13 +342,13 @@ export default {
 
       $container.scrollLeft += MULTIPLIER * step;
     },
-    setRows() {
+    setTempRows() {
       // const TEMP = Math.floor(
       //   (window.innerHeight - this.$refs.reload.$el.offsetHeight) /
       //     this.oneRowHeight,
       // );
       const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
-      this.rows = !TEMP ? 1 : TEMP;
+      this.tempRows = !TEMP ? 1 : TEMP;
     },
     setScales() {
       // console.log(window.innerHeight);
@@ -350,19 +368,6 @@ export default {
       if (this.scale > this.maxScale) {
         this.setScale(this.maxScale);
       }
-    },
-    setMaxItemHeight() {
-      if (!this.items.length) {
-        return;
-      }
-      const $vm = this;
-      console.log($vm.$refs.items[0].$el.offsetHeight);
-      $vm.$refs.items.forEach($item => {
-        const { offsetHeight } = $item.$el;
-        if ($vm.maxItemHeight < offsetHeight) {
-          $vm.maxItemHeight = offsetHeight;
-        }
-      });
     },
     onHideLightbox() {
       this.clearLightboxIndex();
@@ -469,9 +474,12 @@ export default {
       const $vm = this;
       this.timeoutId = setTimeout(() => {
         console.log('RESIZED');
-        $vm.setRows();
+        $vm.setTempRows();
         if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {
           $vm.setScales();
+        }
+        if ($vm.screenHeight != document.documentElement.clientHeight) {
+          $vm.screenHeight = document.documentElement.clientHeight;
         }
       }, 500);
     },
@@ -482,15 +490,9 @@ export default {
   mounted() {
     window.addEventListener('resize', this.onResize);
     document.addEventListener('keydown', this.onKey);
-    this.setRows();
+    this.setTempRows();
     this.setScales();
-  },
-  beforeUpdate() {
-    const $vm = this;
-    $vm.$nextTick(() => {
-      console.log('beforeUpdate');
-      $vm.setMaxItemHeight();
-    });
+    this.screenHeight = document.documentElement.clientHeight;
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.onResize);

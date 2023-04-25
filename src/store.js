@@ -14,6 +14,7 @@ function isLessLast(index, array) {
 export default new Vuex.Store({
   strict: true,
   state: {
+    maxItemHeight: 0,
     scale: 2,
     items: [],
     lightboxIndex: -1,
@@ -29,6 +30,16 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    setMaxItemHeight(state, value) {
+      // const $vm = this;
+      // $vm.$refs.items.forEach($item => {
+      //   const { offsetHeight } = $item.$el;
+      //   if ($vm.maxItemHeight < offsetHeight) {
+      //     $vm.maxItemHeight = offsetHeight;
+      //   }
+      // });
+      state.maxItemHeight = value;
+    },
     setScale(state, value) {
       state.scale = value;
     },
