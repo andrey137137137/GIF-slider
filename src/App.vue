@@ -1,18 +1,23 @@
 <template lang="pug">
 #app.slider
   form.my-form(@submit.prevent='onCancelFormSubmit')
-    b-button-group.d-flex.py-4
-      CtrlButton(variant='info', title='-', :handle='onShrinkScale')
-      b-form-input(
-        :value='scale',
-        @input='setScale($event)',
-        type='range',
-        :min='minScale',
-        :max='maxScale',
-        @keyup.prevent='',
-        @keydown.prevent=''
-      )
-      CtrlButton(variant='info', title='+', :handle='onGrowScale')
+    .d-flex.flex-column(ref='top')
+      b-button-group.d-flex.py-4
+        CtrlButton(variant='info', title='-', :handle='onShrinkScale')
+        b-form-input(
+          :value='scale',
+          @input='setScale($event)',
+          type='range',
+          :min='minScale',
+          :max='maxScale',
+          @keyup.prevent='',
+          @keydown.prevent=''
+        )
+        CtrlButton(variant='info', title='+', :handle='onGrowScale')
+      b-form-checkbox#checkbox-1.align-self-center(
+        v-model='toShowAddItemInGroup',
+        name='checkbox-1'
+      ) To show add item in group
     b-container#container.px-0.d-flex.flex-nowrap.justify-content-start.list.slider-frames(
       v-show='items.length',
       fluid,
@@ -24,6 +29,7 @@
     )
       b-row.slider-row.mx-0(
         v-for='(group, groupIndex) in groups',
+        :key='groupIndex',
         :style='groupStyle(groupIndex)'
       )
         DropItem(
@@ -80,7 +86,7 @@ export default {
       containerWidth: 0,
       rows: 1,
       timeoutId: 0,
-      sdfgdfg: true,
+      toShowAddItemInGroup: false,
     };
   },
   computed: {
@@ -159,24 +165,13 @@ export default {
     },
     areCompleteGroups() {
       const { length } = this.items;
-      // if (!length) {
-      //   return false;
-      // }
       return length && length % this.groupSize == 0;
     },
     isSingleAddingItem() {
-      // const { length } = this.items;
-      // if (!length) {
-      //   return true;
-      // }
-      // // if (this.rows > 1) {
-      // //   return false;
-      // // }
-      // return length >= this.cols;
-      return true;
+      return !this.toShowAddItemInGroup || !this.items.length;
     },
     isEmptyGroup() {
-      return !this.isSingleAddingItem && this.areCompleteGroups;
+      return this.toShowAddItemInGroup && this.areCompleteGroups;
     },
     slideNavStyles() {
       return {
@@ -213,10 +208,14 @@ export default {
       };
     },
     groupStyle(index) {
+      const CORRECTION = this.toShowAddItemInGroup ? 1 : 0;
       let width = this.containerInnerWidth;
 
-      if (index == this.groups - 1 && this.lastGroupItemsCount < this.cols) {
-        width = this.elemWidth * this.lastGroupItemsCount;
+      if (
+        index == this.groups - 1 &&
+        this.lastGroupItemsCount < this.cols - CORRECTION
+      ) {
+        width = this.elemWidth * (this.lastGroupItemsCount + CORRECTION);
       }
 
       return {
@@ -224,12 +223,12 @@ export default {
         // ...this.whenAlignItemsCenter(1),
       };
     },
-    isAddingItemInGroup() {
-      return false;
-      // if (this.areCompleteGroups || this.isSingleAddingItem) {
-      //   return false;
-      // }
-      // return groupIndex == this.groups - 1 && this.isNotOneCol;
+    isAddingItemInGroup(groupIndex) {
+      if (this.toShowAddItemInGroup && !this.areCompleteGroups) {
+        return groupIndex == this.groups - 1 && this.isNotOneCol;
+      } else {
+        return false;
+      }
     },
     whenAlignItemsCenter(rows) {
       return {

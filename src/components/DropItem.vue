@@ -28,7 +28,6 @@ b-col(
       //- b-button-group.mx-1(v-if='isNotFirst')
       //-   CtrlButton(variant='info', title='<', :handle='onRenameToPrev')
       b-button-group.mx-1
-        //- CtrlButton(:variant='' :title='"Replace " + name', :handle='onReplace')
         CtrlButton(:for='replaceID', tag='label', icon='cloud-upload')
         CtrlButton(
           icon='x-circle',
@@ -162,7 +161,7 @@ export default {
           } else {
             $vm.insertBeforeItem({ name: TEMP_ID, ext, index });
           }
-          if ($vm.isSingle) {
+          if ($vm.isAddingItem) {
             $vm.$nextTick(() => {
               $vm.$parent.scrollToLastIndex();
             });
