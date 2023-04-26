@@ -5,9 +5,9 @@
       b-button-group.d-flex.py-4
         CtrlButton(variant='info', title='-', :handle='onShrinkScale')
         b-form-input(
-          :value='scale',
-          @input='setScale($event)',
           type='range',
+          @input='onRange($event)',
+          :value='scale',
           :min='minScale',
           :max='maxScale',
           @keyup.prevent='',
@@ -369,22 +369,6 @@ export default {
         this.setScale(this.maxScale);
       }
     },
-    recalculateMaxItemHeight() {
-      let temp = 0;
-      const $vm = this;
-      if ($vm.items.length) {
-        $vm.$nextTick(() => {
-          $vm.clearMaxItemHeight();
-          $vm.$refs.items.forEach(item => {
-            const ITEM_HEIGHT = item.$el.offsetHeight;
-            if (ITEM_HEIGHT > temp) {
-              temp = ITEM_HEIGHT;
-            }
-          });
-          $vm.setMaxItemHeight(temp);
-        });
-      }
-    },
     onHideLightbox() {
       this.clearLightboxIndex();
       document.body.style.overflow = '';
@@ -486,6 +470,26 @@ export default {
         }
       });
     },
+    recalculateMaxItemHeight() {
+      let temp = 0;
+      const $vm = this;
+      if ($vm.items.length) {
+        $vm.$nextTick(() => {
+          $vm.clearMaxItemHeight();
+          $vm.$refs.items.forEach(item => {
+            const ITEM_HEIGHT = item.$el.offsetHeight;
+            if (ITEM_HEIGHT > temp) {
+              temp = ITEM_HEIGHT;
+            }
+          });
+          $vm.setMaxItemHeight(temp);
+        });
+      }
+    },
+    onRange(value) {
+      this.setScale(value);
+      this.recalculateMaxItemHeight();
+    },
     onResize() {
       clearTimeout(this.timeoutId);
       const $vm = this;
@@ -494,11 +498,11 @@ export default {
         // $vm.setTempRows();
         if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {
           $vm.setScales();
+          $vm.recalculateMaxItemHeight();
         }
         if ($vm.screenHeight != document.documentElement.clientHeight) {
           $vm.screenHeight = document.documentElement.clientHeight;
         }
-        $vm.recalculateMaxItemHeight();
       }, 500);
     },
   },
