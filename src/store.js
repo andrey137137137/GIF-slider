@@ -38,7 +38,9 @@ export default new Vuex.Store({
       //     $vm.maxItemHeight = offsetHeight;
       //   }
       // });
-      state.maxItemHeight = value;
+      if (state.maxItemHeight < value) {
+        state.maxItemHeight = value;
+      }
     },
     setScale(state, value) {
       state.scale = value;

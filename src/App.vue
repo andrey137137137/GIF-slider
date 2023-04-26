@@ -343,10 +343,6 @@ export default {
       $container.scrollLeft += MULTIPLIER * step;
     },
     setTempRows() {
-      // const TEMP = Math.floor(
-      //   (window.innerHeight - this.$refs.reload.$el.offsetHeight) /
-      //     this.oneRowHeight,
-      // );
       const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
       this.tempRows = !TEMP ? 1 : TEMP;
     },

@@ -3,7 +3,8 @@ b-col(
   :id='id',
   :cols='cols',
   @dragstart='onDragStart($event)',
-  @dblclick='onShowLightbox'
+  @dblclick='onShowLightbox',
+  @move='alert(index)'
 )
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
@@ -19,7 +20,8 @@ b-col(
     b-aspect(v-if='!isAddingItem', aspect='16/9')
       b-card-img-lazy(
         :src='"/upload/" + imageName',
-        :alt='"Image " + imageName'
+        :alt='"Image " + imageName',
+        @load='onLoadImage'
       )
     label.button.slider-button(:for='uploadID')
       b-icon(:icon='labelIcon', aria-hidden='true')
@@ -282,6 +284,9 @@ export default {
     },
     onDelete() {
       this.delete(this.index);
+    },
+    onLoadImage() {
+      console.log('LOADED IMAGE: ' + this.name + this.ext);
     },
   },
 };
