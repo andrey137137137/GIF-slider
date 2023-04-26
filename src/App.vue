@@ -45,7 +45,7 @@
         )
       b-row.slider-row.mx-0(v-if='isEmptyGroup', :style='emptyGroupStyle')
         DropItem(:style='elemStyle')
-  DropItem(v-if='isSingleAddingItem', :isSingle='true', ref='bottom')
+  DropItem(v-show='isSingleAddingItem', :isSingle='true', ref='bottom')
   .slider-main(v-show='toShowLightbox', @wheel.prevent='onLightboxWheel')
     .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
       img.slider-main_img(:src='lightBoxSrc')
@@ -78,13 +78,13 @@ export default {
   data() {
     return {
       containerOuterWidth: 0,
-      oneRowHeight: 395,
+      // oneRowHeight: 395,
       curIndex: 0,
       minScale: 1,
       maxScale: 8,
       containerWidth: 0,
       screenHeight: 0,
-      tempRows: 1,
+      // tempRows: 1,
       timeoutId: 0,
       toShowAddItemInGroup: false,
     };
@@ -111,8 +111,10 @@ export default {
         const BOTTOM_HEIGHT = this.isSingleAddingItem
           ? this.$refs.bottom.$el.offsetHeight
           : 0;
+        console.log('BOTTOM_HEIGHT: ' + BOTTOM_HEIGHT);
         const REST_HEIGHT =
           this.screenHeight - this.$refs.top.offsetHeight - BOTTOM_HEIGHT;
+        console.log('REST_HEIGHT: ' + REST_HEIGHT);
 
         rows = Math.floor(REST_HEIGHT / this.maxItemHeight);
         rows = !rows ? 1 : rows;
@@ -168,9 +170,9 @@ export default {
     groupSize() {
       // return this.rows * this.cols;
 
-      if (this.tempRows == 1) {
-        return this.cols;
-      }
+      // if (this.tempRows == 1) {
+      //   return this.cols;
+      // }
 
       // if (this.tempRows > this.rows) {
       //   return this.tempRows * this.cols;
@@ -206,6 +208,8 @@ export default {
   },
   methods: {
     ...mapMutations([
+      'clearMaxItemHeight',
+      'setMaxItemHeight',
       'setScale',
       'decScale',
       'incScale',
@@ -275,13 +279,13 @@ export default {
       return index + this.getGroupStartIndex(group);
     },
     scrollToLastIndex() {
-      console.log('scrollToLastIndex');
+      // console.log('scrollToLastIndex');
       const $container = this.$refs.container;
-      console.log($container.scrollWidth);
+      // console.log($container.scrollWidth);
       $container.scrollLeft = $container.scrollWidth;
     },
     scrollToLightboxIndex() {
-      console.log('scrollToLightboxIndex');
+      // console.log('scrollToLightboxIndex');
       const $container = this.$refs.container;
       const ELEM_WIDTH = this.elemWidth;
       const GROUP_INDEX = Math.floor(this.lightboxIndex / this.groupSize);
@@ -307,7 +311,7 @@ export default {
       $container.scrollLeft = MULTIPLIER * ELEM_WIDTH - offset * ELEM_WIDTH;
     },
     scrollTo(dir) {
-      console.log('scrollTo');
+      // console.log('scrollTo');
       if (!this.items.length) {
         return;
       }
@@ -323,8 +327,8 @@ export default {
 
       // console.log('------------------------------------');
       // console.log('scrollLeft: ' + $container.scrollLeft);
-      console.log('ELEM_WIDTH: ' + ELEM_WIDTH);
-      console.log('DIFF:       ' + DIFF);
+      // console.log('ELEM_WIDTH: ' + ELEM_WIDTH);
+      // console.log('DIFF:       ' + DIFF);
       // console.log('X:          ' + X);
       // console.log('MULTIPLIER: ' + MULTIPLIER);
 
@@ -342,10 +346,10 @@ export default {
 
       $container.scrollLeft += MULTIPLIER * step;
     },
-    setTempRows() {
-      const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
-      this.tempRows = !TEMP ? 1 : TEMP;
-    },
+    // setTempRows() {
+    //   const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
+    //   this.tempRows = !TEMP ? 1 : TEMP;
+    // },
     setScales() {
       // console.log(window.innerHeight);
       // console.log(this.$refs.reload);
@@ -363,6 +367,22 @@ export default {
 
       if (this.scale > this.maxScale) {
         this.setScale(this.maxScale);
+      }
+    },
+    recalculateMaxItemHeight() {
+      let temp = 0;
+      const $vm = this;
+      if ($vm.items.length) {
+        $vm.$nextTick(() => {
+          $vm.clearMaxItemHeight();
+          $vm.$refs.items.forEach(item => {
+            const ITEM_HEIGHT = item.$el.offsetHeight;
+            if (ITEM_HEIGHT > temp) {
+              temp = ITEM_HEIGHT;
+            }
+          });
+          $vm.setMaxItemHeight(temp);
+        });
       }
     },
     onHideLightbox() {
@@ -449,6 +469,7 @@ export default {
     onRefresh() {
       const $vm = this;
       axios.get(this.uploadHost).then(res => {
+        $vm.clearMaxItemHeight();
         $vm.setItems(res.data);
 
         if (!$vm.items.length) {
@@ -470,13 +491,14 @@ export default {
       const $vm = this;
       this.timeoutId = setTimeout(() => {
         console.log('RESIZED');
-        $vm.setTempRows();
+        // $vm.setTempRows();
         if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {
           $vm.setScales();
         }
         if ($vm.screenHeight != document.documentElement.clientHeight) {
           $vm.screenHeight = document.documentElement.clientHeight;
         }
+        $vm.recalculateMaxItemHeight();
       }, 500);
     },
   },
@@ -486,7 +508,7 @@ export default {
   mounted() {
     window.addEventListener('resize', this.onResize);
     document.addEventListener('keydown', this.onKey);
-    this.setTempRows();
+    // this.setTempRows();
     this.setScales();
     this.screenHeight = document.documentElement.clientHeight;
   },

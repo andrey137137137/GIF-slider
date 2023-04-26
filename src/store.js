@@ -30,6 +30,9 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    clearMaxItemHeight(state) {
+      state.maxItemHeight = 0;
+    },
     setMaxItemHeight(state, value) {
       // const $vm = this;
       // $vm.$refs.items.forEach($item => {

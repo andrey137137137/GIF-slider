@@ -1,10 +1,10 @@
 <template lang="pug">
 b-col(
+  ref='col',
   :id='id',
   :cols='cols',
   @dragstart='onDragStart($event)',
-  @dblclick='onShowLightbox',
-  @move='alert(index)'
+  @dblclick='onShowLightbox'
 )
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
@@ -21,7 +21,7 @@ b-col(
       b-card-img-lazy(
         :src='"/upload/" + imageName',
         :alt='"Image " + imageName',
-        @load='onLoadImage'
+        @load.native='onLoadImage'
       )
     label.button.slider-button(:for='uploadID')
       b-icon(:icon='labelIcon', aria-hidden='true')
@@ -113,6 +113,7 @@ export default {
   },
   methods: {
     ...mapMutations([
+      'setMaxItemHeight',
       'setLightboxIndex',
       'insertBeforeItem',
       'replaceItem',
@@ -286,7 +287,8 @@ export default {
       this.delete(this.index);
     },
     onLoadImage() {
-      console.log('LOADED IMAGE: ' + this.name + this.ext);
+      console.log(this.$refs.col.offsetHeight);
+      this.setMaxItemHeight(this.$refs.col.offsetHeight);
     },
   },
 };
