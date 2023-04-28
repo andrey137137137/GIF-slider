@@ -34,13 +34,6 @@ export default new Vuex.Store({
       state.maxItemHeight = 0;
     },
     setMaxItemHeight(state, value) {
-      // const $vm = this;
-      // $vm.$refs.items.forEach($item => {
-      //   const { offsetHeight } = $item.$el;
-      //   if ($vm.maxItemHeight < offsetHeight) {
-      //     $vm.maxItemHeight = offsetHeight;
-      //   }
-      // });
       if (state.maxItemHeight < value) {
         state.maxItemHeight = value;
       }

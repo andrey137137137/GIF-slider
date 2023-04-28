@@ -5,9 +5,9 @@
       b-button-group.d-flex.py-4
         CtrlButton(variant='info', title='-', :handle='onShrinkScale')
         b-form-input(
-          type='range',
-          @input='onRange($event)',
           :value='scale',
+          @input='onRange($event)',
+          type='range',
           :min='minScale',
           :max='maxScale',
           @keyup.prevent='',
@@ -78,7 +78,7 @@ export default {
   data() {
     return {
       containerOuterWidth: 0,
-      // oneRowHeight: 395,
+      oneRowHeight: 395,
       curIndex: 0,
       minScale: 1,
       maxScale: 8,
@@ -101,35 +101,52 @@ export default {
     areOddItems() {
       return this.items.length % 2;
     },
-    scalesConfig() {
-      const cols = this.maxScale - this.scale + 1;
-      let rows = 0;
+    // gridConfig() {
+    //   const cols = this.maxScale - this.scale + 1;
+    //   let rows = 0;
 
+    //   if (!this.screenHeight || !this.maxItemHeight) {
+    //     rows = cols > 3 ? 2 : 1;
+    //   } else {
+    //     const BOTTOM_HEIGHT = this.isSingleAddingItem
+    //       ? this.$refs.bottom.$el.offsetHeight
+    //       : 0;
+    //     console.log('BOTTOM_HEIGHT: ' + BOTTOM_HEIGHT);
+    //     const REST_HEIGHT =
+    //       this.screenHeight - this.$refs.top.offsetHeight - BOTTOM_HEIGHT;
+    //     console.log('REST_HEIGHT: ' + REST_HEIGHT);
+
+    //     rows = Math.floor(REST_HEIGHT / this.maxItemHeight);
+    //     rows = rows <= 0 ? 1 : rows;
+    //   }
+
+    //   // const TEMP_ROWS = cols > 3 ? 2 : 1;
+    //   // return { rows: TEMP_ROWS, cols };
+
+    //   return { rows, cols };
+    // },
+    rows() {
       if (!this.screenHeight || !this.maxItemHeight) {
-        rows = cols > 3 ? 2 : 1;
-      } else {
-        const BOTTOM_HEIGHT = this.isSingleAddingItem
-          ? this.$refs.bottom.$el.offsetHeight
-          : 0;
-        console.log('BOTTOM_HEIGHT: ' + BOTTOM_HEIGHT);
-        const REST_HEIGHT =
-          this.screenHeight - this.$refs.top.offsetHeight - BOTTOM_HEIGHT;
-        console.log('REST_HEIGHT: ' + REST_HEIGHT);
-
-        rows = Math.floor(REST_HEIGHT / this.maxItemHeight);
-        rows = !rows ? 1 : rows;
+        return this.cols > 3 ? 2 : 1;
       }
 
-      // const TEMP_ROWS = cols > 3 ? 2 : 1;
-      // return { rows: TEMP_ROWS, cols };
+      let rows = 0;
 
-      return { rows, cols };
-    },
-    rows() {
-      return this.scalesConfig.rows;
+      const BOTTOM_HEIGHT = this.isSingleAddingItem
+        ? this.$refs.bottom.$el.offsetHeight
+        : 0;
+      console.log('BOTTOM_HEIGHT: ' + BOTTOM_HEIGHT);
+      const REST_HEIGHT =
+        this.screenHeight - this.$refs.top.offsetHeight - BOTTOM_HEIGHT;
+      console.log('REST_HEIGHT: ' + REST_HEIGHT);
+
+      rows = Math.floor(REST_HEIGHT / this.maxItemHeight);
+      rows = rows <= 0 ? 1 : rows;
+
+      return rows;
     },
     cols() {
-      return this.scalesConfig.cols;
+      return this.maxScale - this.scale + 1;
     },
     containerInnerWidth() {
       const REST = this.containerWidth % this.cols;
@@ -252,11 +269,11 @@ export default {
         return false;
       }
     },
-    whenAlignItemsCenter(rows) {
-      return {
-        'align-items': this.rows == rows ? 'center' : 'start',
-      };
-    },
+    // whenAlignItemsCenter(rows) {
+    //   return {
+    //     'align-items': this.rows == rows ? 'center' : 'start',
+    //   };
+    // },
     getGroupFinalIndex(groupIndex) {
       return this.groupSize * groupIndex;
     },
@@ -346,10 +363,10 @@ export default {
 
       $container.scrollLeft += MULTIPLIER * step;
     },
-    // setTempRows() {
-    //   const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
-    //   this.tempRows = !TEMP ? 1 : TEMP;
-    // },
+    setTempRows() {
+      const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
+      this.tempRows = !TEMP ? 1 : TEMP;
+    },
     setScales() {
       // console.log(window.innerHeight);
       // console.log(this.$refs.reload);
@@ -473,9 +490,9 @@ export default {
     recalculateMaxItemHeight() {
       let temp = 0;
       const $vm = this;
+      $vm.clearMaxItemHeight();
       if ($vm.items.length) {
         $vm.$nextTick(() => {
-          $vm.clearMaxItemHeight();
           $vm.$refs.items.forEach(item => {
             const ITEM_HEIGHT = item.$el.offsetHeight;
             if (ITEM_HEIGHT > temp) {
