@@ -146,29 +146,32 @@ const load = (req, res) => {
       return;
     }
     // const collator = new Intl.Collator('en');
-    res.status(SUCCESS).json(
-      files.sort((a, b) => {
-        const aIds = getIdParts(a.name);
-        const bIds = getIdParts(b.name);
-        let i = 0;
-        let result = 0;
+    const sorted = files.sort((a, b) => {
+      const aIds = getIdParts(a.name);
+      const bIds = getIdParts(b.name);
+      let i = 0;
+      let result = 0;
 
-        while (exist(i, aIds) && exist(i, bIds)) {
-          result = parseInt(aIds[i]) - parseInt(bIds[i]);
+      while (exist(i, aIds) && exist(i, bIds)) {
+        result = parseInt(aIds[i]) - parseInt(bIds[i]);
 
-          if (result != 0) {
-            return result;
-          }
-
-          i++;
+        if (result != 0) {
+          return result;
         }
 
-        // console.log('A = ' + A + ' and B = ' + B);
-        // return parseInt(a.name) - parseInt(b.name);
-        return bIds.length - aIds.length;
-      }),
-    );
+        i++;
+      }
+
+      // console.log('A = ' + A + ' and B = ' + B);
+      // return parseInt(a.name) - parseInt(b.name);
+      return bIds.length - aIds.length;
+    });
+
     // res.status(SUCCESS).json(files);
+    const COUNT = 300;
+    const START_INDEX = 0;
+    const FINAL_INDEX = START_INDEX + COUNT;
+    res.status(SUCCESS).json(sorted.slice(START_INDEX, FINAL_INDEX));
   });
 };
 
