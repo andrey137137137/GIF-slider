@@ -101,30 +101,6 @@ export default {
     areOddItems() {
       return this.items.length % 2;
     },
-    // gridConfig() {
-    //   const cols = this.maxScale - this.scale + 1;
-    //   let rows = 0;
-
-    //   if (!this.screenHeight || !this.maxItemHeight) {
-    //     rows = cols > 3 ? 2 : 1;
-    //   } else {
-    //     const BOTTOM_HEIGHT = this.isSingleAddingItem
-    //       ? this.$refs.bottom.$el.offsetHeight
-    //       : 0;
-    //     console.log('BOTTOM_HEIGHT: ' + BOTTOM_HEIGHT);
-    //     const REST_HEIGHT =
-    //       this.screenHeight - this.$refs.top.offsetHeight - BOTTOM_HEIGHT;
-    //     console.log('REST_HEIGHT: ' + REST_HEIGHT);
-
-    //     rows = Math.floor(REST_HEIGHT / this.maxItemHeight);
-    //     rows = rows <= 0 ? 1 : rows;
-    //   }
-
-    //   // const TEMP_ROWS = cols > 3 ? 2 : 1;
-    //   // return { rows: TEMP_ROWS, cols };
-
-    //   return { rows, cols };
-    // },
     rows() {
       if (!this.screenHeight || !this.maxItemHeight) {
         return this.cols > 3 ? 2 : 1;
@@ -185,16 +161,6 @@ export default {
       };
     },
     groupSize() {
-      // return this.rows * this.cols;
-
-      // if (this.tempRows == 1) {
-      //   return this.cols;
-      // }
-
-      // if (this.tempRows > this.rows) {
-      //   return this.tempRows * this.cols;
-      // }
-
       return this.rows * this.cols;
     },
     groups() {
@@ -225,7 +191,8 @@ export default {
   },
   methods: {
     ...mapMutations([
-      'clearMaxItemHeight',
+      'clearImageHights',
+      // 'clearMaxItemHeight',
       'setMaxItemHeight',
       'setScale',
       'decScale',
@@ -444,16 +411,6 @@ export default {
         this.delete(this.lightboxIndex);
       }
     },
-    onShrinkScale() {
-      if (this.scale > this.minScale) {
-        this.decScale();
-      }
-    },
-    onGrowScale() {
-      if (this.scale < this.maxScale) {
-        this.incScale();
-      }
-    },
     onContainerWheel(e) {
       this.scrollTo(e.deltaY > 0 ? -1 : 1);
     },
@@ -470,7 +427,7 @@ export default {
     onRefresh() {
       const $vm = this;
       axios.get(this.uploadHost).then(res => {
-        $vm.clearMaxItemHeight();
+        $vm.clearImageHights();
         $vm.setItems(res.data);
 
         if (!$vm.items.length) {
@@ -490,7 +447,7 @@ export default {
     recalculateMaxItemHeight() {
       let temp = 0;
       const $vm = this;
-      $vm.clearMaxItemHeight();
+      // $vm.clearMaxItemHeight();
       if ($vm.items.length) {
         $vm.$nextTick(() => {
           $vm.$refs.items.forEach(item => {
@@ -501,6 +458,18 @@ export default {
           });
           $vm.setMaxItemHeight(temp);
         });
+      }
+    },
+    onShrinkScale() {
+      if (this.scale > this.minScale) {
+        // this.decScale();
+        this.onRange(this.scale - 1);
+      }
+    },
+    onGrowScale() {
+      if (this.scale < this.maxScale) {
+        // this.incScale();
+        this.onRange(this.scale + 1);
       }
     },
     onRange(value) {

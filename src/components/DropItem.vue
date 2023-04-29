@@ -113,7 +113,7 @@ export default {
   },
   methods: {
     ...mapMutations([
-      'setMaxItemHeight',
+      'addImageHight',
       'setLightboxIndex',
       'insertBeforeItem',
       'replaceItem',
@@ -288,7 +288,7 @@ export default {
     },
     onLoadImage() {
       console.log(this.$refs.col.offsetHeight);
-      this.setMaxItemHeight(this.$refs.col.offsetHeight);
+      this.addImageHight(this.$refs.col.offsetHeight);
     },
   },
 };

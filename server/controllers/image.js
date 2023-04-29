@@ -137,7 +137,7 @@ function getFiles(dirPath, cb) {
   });
 }
 
-const load = (req, res) => {
+const load = (req, res, startIndex = 0, count = 0) => {
   getFiles(UPLOAD_PATH, (err, files) => {
     if (err) {
       res.status(ERROR).json({
@@ -147,13 +147,13 @@ const load = (req, res) => {
     }
     // const collator = new Intl.Collator('en');
     const sorted = files.sort((a, b) => {
-      const aIds = getIdParts(a.name);
-      const bIds = getIdParts(b.name);
+      const aKeys = getIdParts(a.name);
+      const bKeys = getIdParts(b.name);
       let i = 0;
       let result = 0;
 
-      while (exist(i, aIds) && exist(i, bIds)) {
-        result = parseInt(aIds[i]) - parseInt(bIds[i]);
+      while (exist(i, aKeys) && exist(i, bKeys)) {
+        result = parseInt(aKeys[i]) - parseInt(bKeys[i]);
 
         if (result != 0) {
           return result;
@@ -164,14 +164,11 @@ const load = (req, res) => {
 
       // console.log('A = ' + A + ' and B = ' + B);
       // return parseInt(a.name) - parseInt(b.name);
-      return bIds.length - aIds.length;
+      return bKeys.length - aKeys.length;
     });
 
-    // res.status(SUCCESS).json(files);
-    const COUNT = 300;
-    const START_INDEX = 0;
-    const FINAL_INDEX = START_INDEX + COUNT;
-    res.status(SUCCESS).json(sorted.slice(START_INDEX, FINAL_INDEX));
+    const FINAL_INDEX = !count ? sorted.length - 1 : startIndex + count;
+    res.status(SUCCESS).json(sorted.slice(startIndex, FINAL_INDEX));
   });
 };
 

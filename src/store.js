@@ -14,6 +14,7 @@ function isLessLast(index, array) {
 export default new Vuex.Store({
   strict: true,
   state: {
+    imageHights: [],
     maxItemHeight: 0,
     scale: 2,
     items: [],
@@ -30,15 +31,39 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    clearImageHights(state) {
+      state.imageHights = [];
+      state.maxItemHeight = 0;
+    },
+    addImageHight(state, value) {
+      state.imageHights.push(value);
+
+      if (state.imageHights.length >= state.items.length) {
+        let temp = 0;
+
+        state.imageHights.forEach(height => {
+          if (height > temp) {
+            temp = height;
+          }
+        });
+
+        if (state.maxItemHeight < temp) {
+          state.maxItemHeight = temp;
+        }
+      }
+
+      // if (state.maxItemHeight < value) {
+      //   state.maxItemHeight = value;
+      // }
+    },
     clearMaxItemHeight(state) {
       state.maxItemHeight = 0;
     },
     setMaxItemHeight(state, value) {
-      if (state.maxItemHeight < value) {
-        state.maxItemHeight = value;
-      }
+      state.maxItemHeight = value;
     },
     setScale(state, value) {
+      state.maxItemHeight = 0;
       state.scale = value;
     },
     decScale(state) {
