@@ -192,7 +192,6 @@ export default {
   methods: {
     ...mapMutations([
       'clearImageHights',
-      // 'clearMaxItemHeight',
       'setMaxItemHeight',
       'setScale',
       'decScale',
@@ -444,19 +443,15 @@ export default {
         }
       });
     },
-    recalculateMaxItemHeight() {
-      let temp = 0;
+    recalculateMaxItemHeight(byResizing = true) {
       const $vm = this;
-      // $vm.clearMaxItemHeight();
       if ($vm.items.length) {
         $vm.$nextTick(() => {
-          $vm.$refs.items.forEach(item => {
-            const ITEM_HEIGHT = item.$el.offsetHeight;
-            if (ITEM_HEIGHT > temp) {
-              temp = ITEM_HEIGHT;
-            }
-          });
-          $vm.setMaxItemHeight(temp);
+          if (byResizing) {
+            $vm.resetMaxItemHeight();
+          } else {
+            $vm.setMaxItemHeight($vm.elemWidth);
+          }
         });
       }
     },
@@ -474,12 +469,12 @@ export default {
     },
     onRange(value) {
       this.setScale(value);
-      this.recalculateMaxItemHeight();
+      this.recalculateMaxItemHeight(false);
     },
     onResize() {
       clearTimeout(this.timeoutId);
       const $vm = this;
-      this.timeoutId = setTimeout(() => {
+      $vm.timeoutId = setTimeout(() => {
         console.log('RESIZED');
         // $vm.setTempRows();
         if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {

@@ -59,12 +59,13 @@ export default {
   data() {
     return {
       isHighlighted: false,
+      isFirstLoading: true,
       dataTransferAttrName: 'nameID',
       dataTransferAttrExt: 'ext',
     };
   },
   computed: {
-    ...mapState(['scale', 'items', 'lastTopID']),
+    ...mapState(['scale', 'itemWidth', 'items', 'lastTopID']),
     id() {
       if (this.isAddingItem) {
         return 0;
@@ -113,7 +114,8 @@ export default {
   },
   methods: {
     ...mapMutations([
-      'addImageHight',
+      'setItemWidth',
+      'addImageHeight',
       'setLightboxIndex',
       'insertBeforeItem',
       'replaceItem',
@@ -288,7 +290,19 @@ export default {
     },
     onLoadImage() {
       console.log(this.$refs.col.offsetHeight);
-      this.addImageHight(this.$refs.col.offsetHeight);
+
+      if (!this.itemWidth) {
+        this.setItemWidth(this.$refs.col.offsetWidth);
+      }
+
+      if (!this.isFirstLoading) {
+        this.addImageHeight({
+          index: this.index,
+          value: this.$refs.col.offsetHeight,
+        });
+      } else {
+        this.isFirstLoading = false;
+      }
     },
   },
 };

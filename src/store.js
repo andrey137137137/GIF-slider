@@ -11,12 +11,27 @@ function isLessLast(index, array) {
   return index < array.length - 1;
 }
 
+function getMaxHeight(array) {
+  let temp = 0;
+
+  array.forEach(({ height }) => {
+    if (height > temp) {
+      temp = height;
+    }
+  });
+
+  return temp;
+}
+
 export default new Vuex.Store({
   strict: true,
   state: {
-    imageHights: [],
+    // imageHights: [],
+    imagesCount: 0,
     maxItemHeight: 0,
     scale: 2,
+    itemWidth: 0,
+    itemProportion: 0,
     items: [],
     lightboxIndex: -1,
     lastTopID: 0,
@@ -31,36 +46,38 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    setItemWidth(state, value) {
+      state.itemWidth = value;
+    },
     clearImageHights(state) {
-      state.imageHights = [];
+      // state.imageHights = [];
+      state.imagesCount = 0;
       state.maxItemHeight = 0;
     },
-    addImageHight(state, value) {
-      state.imageHights.push(value);
+    addImageHeight(state, { index, value }) {
+      // state.imageHights.push(value);
 
-      if (state.imageHights.length >= state.items.length) {
-        let temp = 0;
+      this.$set(state.items[index], 'height', value);
+      state.imagesCount++;
 
-        state.imageHights.forEach(height => {
-          if (height > temp) {
-            temp = height;
-          }
-        });
+      // if (state.imageHights.length >= state.items.length) {
+      if (state.imagesCount >= state.items.length) {
+        const TEMP = getMaxHeight(state.items);
 
-        if (state.maxItemHeight < temp) {
-          state.maxItemHeight = temp;
+        if (state.maxItemHeight < TEMP) {
+          state.maxItemHeight = TEMP;
+          state.itemProportion = state.maxItemHeight / state.itemWidth;
         }
       }
-
-      // if (state.maxItemHeight < value) {
-      //   state.maxItemHeight = value;
-      // }
+    },
+    resetMaxItemHeight(state) {
+      state.maxItemHeight = getMaxHeight(state.items);
     },
     clearMaxItemHeight(state) {
       state.maxItemHeight = 0;
     },
     setMaxItemHeight(state, value) {
-      state.maxItemHeight = value;
+      state.maxItemHeight = state.itemProportion * value;
     },
     setScale(state, value) {
       state.maxItemHeight = 0;
