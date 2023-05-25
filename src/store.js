@@ -26,8 +26,7 @@ function getMaxHeight(array) {
 export default new Vuex.Store({
   strict: true,
   state: {
-    // imageHights: [],
-    imagesCount: 0,
+    imageHeights: [],
     maxItemHeight: 0,
     scale: 2,
     itemWidth: 0,
@@ -46,23 +45,22 @@ export default new Vuex.Store({
     },
   },
   mutations: {
-    setItemWidth(state, value) {
-      state.itemWidth = value;
+    setItemWidth(state, height) {
+      state.itemWidth = height;
     },
-    clearImageHights(state) {
-      // state.imageHights = [];
-      state.imagesCount = 0;
+    clearImageHeights(state) {
+      state.imageHeights = [];
       state.maxItemHeight = 0;
     },
-    addImageHeight(state, { index, value }) {
-      // state.imageHights.push(value);
+    addImageHeight(state, { index, height }) {
+      if (state.maxItemHeight) {
+        return;
+      }
 
-      this.$set(state.items[index], 'height', value);
-      state.imagesCount++;
+      state.imageHeights.push({ index, height });
 
-      // if (state.imageHights.length >= state.items.length) {
-      if (state.imagesCount >= state.items.length) {
-        const TEMP = getMaxHeight(state.items);
+      if (state.imageHeights.length >= state.items.length) {
+        const TEMP = getMaxHeight(state.imageHeights);
 
         if (state.maxItemHeight < TEMP) {
           state.maxItemHeight = TEMP;
@@ -70,18 +68,18 @@ export default new Vuex.Store({
         }
       }
     },
-    resetMaxItemHeight(state) {
-      state.maxItemHeight = getMaxHeight(state.items);
-    },
     clearMaxItemHeight(state) {
       state.maxItemHeight = 0;
     },
-    setMaxItemHeight(state, value) {
-      state.maxItemHeight = state.itemProportion * value;
+    resetMaxItemHeight(state) {
+      state.maxItemHeight = getMaxHeight(state.items);
     },
-    setScale(state, value) {
+    setMaxItemHeight(state, height) {
+      state.maxItemHeight = state.itemProportion * height;
+    },
+    setScale(state, height) {
       state.maxItemHeight = 0;
-      state.scale = value;
+      state.scale = height;
     },
     decScale(state) {
       state.scale--;
@@ -92,8 +90,8 @@ export default new Vuex.Store({
     setItems(state, data) {
       state.items = data;
     },
-    setLightboxIndex(state, value) {
-      state.lightboxIndex = value;
+    setLightboxIndex(state, height) {
+      state.lightboxIndex = height;
     },
     clearLightboxIndex(state) {
       state.lightboxIndex = -1;
@@ -109,8 +107,8 @@ export default new Vuex.Store({
         state.lightboxIndex++;
       }
     },
-    setLastTopID(state, value) {
-      state.lastTopID = value;
+    setLastTopID(state, height) {
+      state.lastTopID = height;
     },
     decLastTopID(state) {
       state.lastTopID--;

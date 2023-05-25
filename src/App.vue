@@ -36,13 +36,13 @@
           v-for='(item, cellIndex) in itemsByGroup(group)',
           :key='item.name',
           :index='indexByGroup(group, cellIndex)',
-          :style='elemStyle',
-          ref='items'
+          :style='elemStyle'
         )
         DropItem(
           v-if='isAddingItemInGroup(groupIndex)',
           :style='addingItemStyle'
         )
+        //- ref='items'
       b-row.slider-row.mx-0(v-if='isEmptyGroup', :style='emptyGroupStyle')
         DropItem(:style='elemStyle')
   DropItem(v-show='isSingleAddingItem', :isSingle='true', ref='bottom')
@@ -191,8 +191,9 @@ export default {
   },
   methods: {
     ...mapMutations([
-      'clearImageHights',
+      'clearImageHeights',
       'setMaxItemHeight',
+      'resetMaxItemHeight',
       'setScale',
       'decScale',
       'incScale',
@@ -426,7 +427,8 @@ export default {
     onRefresh() {
       const $vm = this;
       axios.get(this.uploadHost).then(res => {
-        $vm.clearImageHights();
+        $vm.clearImageHeights();
+        console.log(res.data);
         $vm.setItems(res.data);
 
         if (!$vm.items.length) {
@@ -443,15 +445,15 @@ export default {
         }
       });
     },
-    recalculateMaxItemHeight(byResizing = true) {
+    recalculateMaxItemHeight() {
       const $vm = this;
       if ($vm.items.length) {
         $vm.$nextTick(() => {
-          if (byResizing) {
-            $vm.resetMaxItemHeight();
-          } else {
-            $vm.setMaxItemHeight($vm.elemWidth);
-          }
+          // if (byResizing) {
+          $vm.resetMaxItemHeight();
+          // } else {
+          //   $vm.setMaxItemHeight($vm.elemWidth);
+          // }
         });
       }
     },
@@ -469,7 +471,8 @@ export default {
     },
     onRange(value) {
       this.setScale(value);
-      this.recalculateMaxItemHeight(false);
+      // this.recalculateMaxItemHeight(false);
+      // this.setMaxItemHeight(this.elemWidth);
     },
     onResize() {
       clearTimeout(this.timeoutId);

@@ -65,7 +65,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(['scale', 'itemWidth', 'items', 'lastTopID']),
+    ...mapState(['scale', 'itemWidth', 'items', 'imageHeights', 'lastTopID']),
     id() {
       if (this.isAddingItem) {
         return 0;
@@ -289,20 +289,24 @@ export default {
       this.delete(this.index);
     },
     onLoadImage() {
+      if (this.imageHeights.length >= this.items.length) {
+        return;
+      }
+
       console.log(this.$refs.col.offsetHeight);
 
-      if (!this.itemWidth) {
-        this.setItemWidth(this.$refs.col.offsetWidth);
-      }
+      // if (!this.itemWidth) {
+      //   this.setItemWidth(this.$refs.col.offsetWidth);
+      // }
 
-      if (!this.isFirstLoading) {
-        this.addImageHeight({
-          index: this.index,
-          value: this.$refs.col.offsetHeight,
-        });
-      } else {
-        this.isFirstLoading = false;
-      }
+      // if (!this.isFirstLoading) {
+      //   this.addImageHeight({
+      //     index: this.index,
+      //     height: this.$refs.col.offsetHeight,
+      //   });
+      // } else {
+      //   this.isFirstLoading = false;
+      // }
     },
   },
 };

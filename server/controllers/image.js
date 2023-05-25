@@ -167,8 +167,12 @@ const load = (req, res, startIndex = 0, count = 0) => {
       return bKeys.length - aKeys.length;
     });
 
-    const FINAL_INDEX = !count ? sorted.length - 1 : startIndex + count;
-    res.status(SUCCESS).json(sorted.slice(startIndex, FINAL_INDEX));
+    const FINAL_INDEX = !count ? sorted.length : startIndex + count;
+    const sliced = sorted.slice(startIndex, FINAL_INDEX);
+
+    console.log(sliced);
+
+    res.status(SUCCESS).json(sliced);
   });
 };
 
