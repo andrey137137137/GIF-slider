@@ -87,6 +87,7 @@ export default {
       // tempRows: 1,
       timeoutId: 0,
       toShowAddItemInGroup: false,
+      scrollShift: 0,
     };
   },
   computed: {
@@ -267,6 +268,7 @@ export default {
       const $container = this.$refs.container;
       // console.log($container.scrollWidth);
       $container.scrollLeft = $container.scrollWidth;
+      this.setScrollShift(this.groupSize);
     },
     scrollToLightboxIndex() {
       // console.log('scrollToLightboxIndex');
@@ -292,7 +294,10 @@ export default {
         }
       }
 
-      $container.scrollLeft = MULTIPLIER * ELEM_WIDTH - offset * ELEM_WIDTH;
+      let temp = MULTIPLIER - offset;
+      $container.scrollLeft = temp * ELEM_WIDTH;
+
+      this.setScrollShift(temp);
     },
     scrollTo(dir) {
       // console.log('scrollTo');
@@ -328,7 +333,14 @@ export default {
 
       // console.log('step:       ' + step);
 
-      $container.scrollLeft += MULTIPLIER * step;
+      let temp = MULTIPLIER * step;
+      $container.scrollLeft += temp;
+
+      this.setScrollShift(Math.floor(temp / ELEM_WIDTH));
+    },
+    setScrollShift(value) {
+      const TEMP = this.items.length - value;
+      this.scrollShift = TEMP < 0 ? 0 : TEMP;
     },
     setTempRows() {
       const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
