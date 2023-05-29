@@ -90,8 +90,8 @@ export default new Vuex.Store({
     setItems(state, data) {
       state.items = data;
     },
-    setLightboxIndex(state, height) {
-      state.lightboxIndex = height;
+    setLightboxIndex(state, index) {
+      state.lightboxIndex = index;
     },
     clearLightboxIndex(state) {
       state.lightboxIndex = -1;

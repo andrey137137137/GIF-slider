@@ -336,10 +336,18 @@ export default {
       let temp = MULTIPLIER * step;
       $container.scrollLeft += temp;
 
-      this.setScrollShift(Math.floor(temp / ELEM_WIDTH));
+      console.log(DIFF);
+      console.log(step == ELEM_WIDTH);
+
+      if (step == ELEM_WIDTH) {
+        this.setScrollShift(this.scrollShift + MULTIPLIER);
+      }
+
+      console.log(this.scrollShift);
     },
     setScrollShift(value) {
-      const TEMP = this.items.length - value;
+      // const TEMP = this.items.length - value;
+      const TEMP = value;
       this.scrollShift = TEMP < 0 ? 0 : TEMP;
     },
     setTempRows() {
