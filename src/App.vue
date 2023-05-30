@@ -164,12 +164,31 @@ export default {
     groupSize() {
       return this.rows * this.cols;
     },
+    floatGroups() {
+      return this.items.length / this.groupSize;
+    },
     groups() {
-      return Math.ceil(this.items.length / this.groupSize);
+      return Math.ceil(this.floatGroups);
+    },
+    fullGroups() {
+      return Math.floor(this.floatGroups);
     },
     areCompleteGroups() {
       const { length } = this.items;
       return length && length % this.groupSize == 0;
+    },
+    fullGroupItems() {
+      return this.fullGroups * this.groupSize;
+    },
+    colsInLastGroup() {
+      const DIFF = this.items.length - this.fullGroupItems;
+      return DIFF > this.cols ? this.cols : DIFF;
+    },
+    maxScrollShift() {
+      return (
+        (this.fullGroupItems - this.groupSize) / this.rows +
+        this.colsInLastGroup
+      );
     },
     isSingleAddingItem() {
       return !this.toShowAddItemInGroup || !this.items.length;
@@ -268,12 +287,12 @@ export default {
       const $container = this.$refs.container;
       // console.log($container.scrollWidth);
       $container.scrollLeft = $container.scrollWidth;
-      this.setScrollShift(this.groupSize);
+      this.setScrollShift(this.maxScrollShift);
     },
     scrollToLightboxIndex() {
       // console.log('scrollToLightboxIndex');
       const $container = this.$refs.container;
-      const ELEM_WIDTH = this.elemWidth;
+      // const ELEM_WIDTH = this.elemWidth;
       const GROUP_INDEX = Math.floor(this.lightboxIndex / this.groupSize);
       const ELEM_INDEX = this.lightboxIndex % this.cols;
       const MULTIPLIER = GROUP_INDEX * this.cols + ELEM_INDEX;
@@ -295,7 +314,7 @@ export default {
       }
 
       let temp = MULTIPLIER - offset;
-      $container.scrollLeft = temp * ELEM_WIDTH;
+      $container.scrollLeft = temp * this.elemWidth;
 
       this.setScrollShift(temp);
     },
@@ -306,17 +325,17 @@ export default {
       }
 
       const $container = this.$refs.container;
-      const ELEM_WIDTH = this.elemWidth;
-      const DIFF = $container.scrollLeft % ELEM_WIDTH;
+      // const ELEM_WIDTH = this.elemWidth;
+      const DIFF = $container.scrollLeft % this.elemWidth;
       const MULTIPLIER = dir > 0 ? 1 : -1;
 
-      // if (X % COLS_WIDTH <= ELEM_WIDTH) {
+      // if (X % COLS_WIDTH <= this.elemWidth) {
       //   DIFF = 0;
       // }
 
       // console.log('------------------------------------');
       // console.log('scrollLeft: ' + $container.scrollLeft);
-      // console.log('ELEM_WIDTH: ' + ELEM_WIDTH);
+      // console.log('ELEM_WIDTH: ' + this.elemWidth);
       // console.log('DIFF:       ' + DIFF);
       // console.log('X:          ' + X);
       // console.log('MULTIPLIER: ' + MULTIPLIER);
@@ -324,11 +343,11 @@ export default {
       let step;
 
       if (!DIFF) {
-        step = ELEM_WIDTH;
+        step = this.elemWidth;
       } else if (MULTIPLIER < 0) {
         step = DIFF;
       } else {
-        step = ELEM_WIDTH - DIFF;
+        step = this.elemWidth - DIFF;
       }
 
       // console.log('step:       ' + step);
@@ -337,18 +356,22 @@ export default {
       $container.scrollLeft += temp;
 
       console.log(DIFF);
-      console.log(step == ELEM_WIDTH);
+      console.log(step == this.elemWidth);
 
-      if (step == ELEM_WIDTH) {
+      if (step == this.elemWidth) {
         this.setScrollShift(this.scrollShift + MULTIPLIER);
       }
 
       console.log(this.scrollShift);
     },
     setScrollShift(value) {
-      // const TEMP = this.items.length - value;
-      const TEMP = value;
-      this.scrollShift = TEMP < 0 ? 0 : TEMP;
+      if (value < 0) {
+        this.scrollShift = 0;
+      } else if (value > this.maxScrollShift) {
+        this.scrollShift = this.maxScrollShift;
+      } else {
+        this.scrollShift = value;
+      }
     },
     setTempRows() {
       const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);

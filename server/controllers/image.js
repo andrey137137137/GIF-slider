@@ -170,7 +170,7 @@ const load = (req, res, startIndex = 0, count = 0) => {
     const FINAL_INDEX = !count ? sorted.length : startIndex + count;
     const sliced = sorted.slice(startIndex, FINAL_INDEX);
 
-    console.log(sliced);
+    // console.log(sliced);
 
     res.status(SUCCESS).json(sliced);
   });
