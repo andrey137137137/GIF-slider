@@ -85,9 +85,12 @@ export default {
       containerWidth: 0,
       screenHeight: 0,
       // tempRows: 1,
-      timeoutId: 0,
+      resizeId: 0,
+      loadingId: 0,
       toShowAddItemInGroup: false,
       scrollShift: 0,
+      diffScrollShift: 0,
+      isLoading: false,
     };
   },
   computed: {
@@ -486,6 +489,7 @@ export default {
         if ($vm.getIdParts(LAST_INDEX).length > 1) {
           $vm.decLastTopID();
         }
+        $vm.isLoading = false;
       });
     },
     recalculateMaxItemHeight() {
@@ -518,19 +522,44 @@ export default {
       // this.setMaxItemHeight(this.elemWidth);
     },
     onResize() {
-      clearTimeout(this.timeoutId);
+      clearTimeout(this.resizeId);
       const $vm = this;
-      $vm.timeoutId = setTimeout(() => {
+      $vm.resizeId = setTimeout(() => {
         console.log('RESIZED');
         // $vm.setTempRows();
         if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {
           $vm.setScales();
-          $vm.recalculateMaxItemHeight();
+          // $vm.recalculateMaxItemHeight();
         }
         if ($vm.screenHeight != document.documentElement.clientHeight) {
           $vm.screenHeight = document.documentElement.clientHeight;
         }
+        clearTimeout(this.resizeId);
       }, 500);
+    },
+  },
+  watch: {
+    scrollShift(newValue, oldValue) {
+      // clearTimeout(this.loadingId);
+      const $vm = this;
+
+      if (newValue > oldValue) {
+        this.diffScrollShift++;
+      } else if (newValue < oldValue) {
+        this.diffScrollShift--;
+      }
+
+      if (this.diffScrollShift < 0) {
+        this.diffScrollShift = 0;
+      } else if (!this.isLoading && this.diffScrollShift > this.groupSize) {
+        this.diffScrollShift = 0;
+        // this.loadingId = setTimeout(() => {
+        $vm.isLoading = true;
+        $vm.onRefresh();
+        //   clearTimeout($vm.loadingId);
+        // }, 500);
+      }
+      console.log(newValue - oldValue);
     },
   },
   created() {
