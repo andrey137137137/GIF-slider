@@ -1,11 +1,11 @@
 <template lang="pug">
 b-col(
-  ref='col',
   :id='id',
   :cols='cols',
   @dragstart='onDragStart($event)',
   @dblclick='onShowLightbox'
 )
+  //- ref='col',
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
     :class='sliderFrameClasses',
@@ -293,7 +293,7 @@ export default {
         return;
       }
 
-      console.log(this.$refs.col.offsetHeight);
+      // console.log(this.$refs.col.offsetHeight);
 
       // if (!this.itemWidth) {
       //   this.setItemWidth(this.$refs.col.offsetWidth);

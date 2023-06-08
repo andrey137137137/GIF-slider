@@ -1,6 +1,7 @@
 <template lang="pug">
 #app.slider
   form.my-form(@submit.prevent='onCancelFormSubmit')
+    b-form-input(v-model='rows', type='number')
     .d-flex.flex-column(ref='top')
       b-button-group.d-flex.py-4
         CtrlButton(variant='info', title='-', :handle='onShrinkScale')
@@ -84,7 +85,7 @@ export default {
       maxScale: 8,
       containerWidth: 0,
       screenHeight: 0,
-      // tempRows: 1,
+      rows: 1,
       resizeId: 0,
       loadingId: 0,
       toShowAddItemInGroup: false,
@@ -105,26 +106,26 @@ export default {
     areOddItems() {
       return this.items.length % 2;
     },
-    rows() {
-      if (!this.screenHeight || !this.maxItemHeight) {
-        return this.cols > 3 ? 2 : 1;
-      }
+    // rows() {
+    //   if (!this.screenHeight || !this.maxItemHeight) {
+    //     return this.cols > 3 ? 2 : 1;
+    //   }
 
-      let rows = 0;
+    //   let rows = 0;
 
-      const BOTTOM_HEIGHT = this.isSingleAddingItem
-        ? this.$refs.bottom.$el.offsetHeight
-        : 0;
-      console.log('BOTTOM_HEIGHT: ' + BOTTOM_HEIGHT);
-      const REST_HEIGHT =
-        this.screenHeight - this.$refs.top.offsetHeight - BOTTOM_HEIGHT;
-      console.log('REST_HEIGHT: ' + REST_HEIGHT);
+    //   const BOTTOM_HEIGHT = this.isSingleAddingItem
+    //     ? this.$refs.bottom.$el.offsetHeight
+    //     : 0;
+    //   console.log('BOTTOM_HEIGHT: ' + BOTTOM_HEIGHT);
+    //   const REST_HEIGHT =
+    //     this.screenHeight - this.$refs.top.offsetHeight - BOTTOM_HEIGHT;
+    //   console.log('REST_HEIGHT: ' + REST_HEIGHT);
 
-      rows = Math.floor(REST_HEIGHT / this.maxItemHeight);
-      rows = rows <= 0 ? 1 : rows;
+    //   rows = Math.floor(REST_HEIGHT / this.maxItemHeight);
+    //   rows = rows <= 0 ? 1 : rows;
 
-      return rows;
-    },
+    //   return rows;
+    // },
     cols() {
       return this.maxScale - this.scale + 1;
     },
@@ -475,7 +476,7 @@ export default {
       axios.get(this.uploadHost).then(res => {
         $vm.clearImageHeights();
         console.log(res.data);
-        $vm.setItems(res.data);
+        $vm.setItems(res.data.items);
 
         if (!$vm.items.length) {
           $vm.setLastTopID(0);
@@ -541,24 +542,24 @@ export default {
   watch: {
     scrollShift(newValue, oldValue) {
       // clearTimeout(this.loadingId);
-      const $vm = this;
+      // const $vm = this;
 
-      if (newValue > oldValue) {
-        this.diffScrollShift++;
-      } else if (newValue < oldValue) {
-        this.diffScrollShift--;
-      }
+      // if (newValue > oldValue) {
+      //   this.diffScrollShift++;
+      // } else if (newValue < oldValue) {
+      //   this.diffScrollShift--;
+      // }
 
-      if (this.diffScrollShift < 0) {
-        this.diffScrollShift = 0;
-      } else if (!this.isLoading && this.diffScrollShift > this.groupSize) {
-        this.diffScrollShift = 0;
-        // this.loadingId = setTimeout(() => {
-        $vm.isLoading = true;
-        $vm.onRefresh();
-        //   clearTimeout($vm.loadingId);
-        // }, 500);
-      }
+      // if (this.diffScrollShift < 0) {
+      //   this.diffScrollShift = 0;
+      // } else if (!this.isLoading && this.diffScrollShift > this.groupSize) {
+      //   this.diffScrollShift = 0;
+      //   // this.loadingId = setTimeout(() => {
+      //   $vm.isLoading = true;
+      //   $vm.onRefresh();
+      //   //   clearTimeout($vm.loadingId);
+      //   // }, 500);
+      // }
       console.log(newValue - oldValue);
     },
   },

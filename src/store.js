@@ -78,7 +78,7 @@ export default new Vuex.Store({
       state.maxItemHeight = state.itemProportion * height;
     },
     setScale(state, height) {
-      state.maxItemHeight = 0;
+      // state.maxItemHeight = 0;
       state.scale = height;
     },
     decScale(state) {

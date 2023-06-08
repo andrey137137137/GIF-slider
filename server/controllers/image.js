@@ -172,7 +172,7 @@ const load = (req, res, startIndex = 0, count = 0) => {
 
     // console.log(sliced);
 
-    res.status(SUCCESS).json(sliced);
+    res.status(SUCCESS).json({ count: sliced.length, items: sliced });
   });
 };
 
