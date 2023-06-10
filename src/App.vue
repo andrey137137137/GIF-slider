@@ -1,7 +1,15 @@
 <template lang="pug">
 #app.slider
   form.my-form(@submit.prevent='onCancelFormSubmit')
-    b-form-input(v-model='rows', type='number')
+    b-container
+      b-row
+        b-col
+          b-form-input(v-model='rows', type='number')
+        b-col(cols='3')
+          b-form-checkbox#checkbox-1(
+            v-model='toShowAddItemInGroup',
+            name='checkbox-1'
+          ) To show add item in group
     .d-flex.flex-column(ref='top')
       b-button-group.d-flex.py-4
         CtrlButton(variant='info', title='-', :handle='onShrinkScale')
@@ -15,10 +23,6 @@
           @keydown.prevent=''
         )
         CtrlButton(variant='info', title='+', :handle='onGrowScale')
-      b-form-checkbox#checkbox-1.align-self-center(
-        v-model='toShowAddItemInGroup',
-        name='checkbox-1'
-      ) To show add item in group
     b-container#container.px-0.d-flex.flex-nowrap.justify-content-start.list.slider-frames(
       v-show='items.length',
       fluid,
