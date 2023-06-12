@@ -11,26 +11,10 @@ function isLessLast(index, array) {
   return index < array.length - 1;
 }
 
-function getMaxHeight(array) {
-  let temp = 0;
-
-  array.forEach(({ height }) => {
-    if (height > temp) {
-      temp = height;
-    }
-  });
-
-  return temp;
-}
-
 export default new Vuex.Store({
   strict: true,
   state: {
-    imageHeights: [],
-    maxItemHeight: 0,
     scale: 2,
-    itemWidth: 0,
-    itemProportion: 0,
     items: [],
     lightboxIndex: -1,
     lastTopID: 0,
@@ -45,40 +29,7 @@ export default new Vuex.Store({
     },
   },
   mutations: {
-    setItemWidth(state, height) {
-      state.itemWidth = height;
-    },
-    clearImageHeights(state) {
-      state.imageHeights = [];
-      state.maxItemHeight = 0;
-    },
-    addImageHeight(state, { index, height }) {
-      if (state.maxItemHeight) {
-        return;
-      }
-
-      state.imageHeights.push({ index, height });
-
-      if (state.imageHeights.length >= state.items.length) {
-        const TEMP = getMaxHeight(state.imageHeights);
-
-        if (state.maxItemHeight < TEMP) {
-          state.maxItemHeight = TEMP;
-          state.itemProportion = state.maxItemHeight / state.itemWidth;
-        }
-      }
-    },
-    clearMaxItemHeight(state) {
-      state.maxItemHeight = 0;
-    },
-    resetMaxItemHeight(state) {
-      state.maxItemHeight = getMaxHeight(state.items);
-    },
-    setMaxItemHeight(state, height) {
-      state.maxItemHeight = state.itemProportion * height;
-    },
     setScale(state, height) {
-      // state.maxItemHeight = 0;
       state.scale = height;
     },
     decScale(state) {

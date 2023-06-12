@@ -47,7 +47,6 @@
           v-if='isAddingItemInGroup(groupIndex)',
           :style='addingItemStyle'
         )
-        //- ref='items'
       b-row.slider-row.mx-0(v-if='isEmptyGroup', :style='emptyGroupStyle')
         DropItem(:style='elemStyle')
   DropItem(v-show='isSingleAddingItem', :isSingle='true', ref='bottom')
@@ -90,6 +89,7 @@ export default {
       containerWidth: 0,
       screenHeight: 0,
       rows: 1,
+      vertStep: 150,
       resizeId: 0,
       loadingId: 0,
       toShowAddItemInGroup: false,
@@ -99,7 +99,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(['maxItemHeight', 'scale', 'items', 'lightboxIndex']),
+    ...mapState(['scale', 'items', 'lightboxIndex']),
     ...mapGetters(['toShowPrev', 'toShowNext']),
     isNotOneCol() {
       return this.cols > 1;
@@ -110,26 +110,6 @@ export default {
     areOddItems() {
       return this.items.length % 2;
     },
-    // rows() {
-    //   if (!this.screenHeight || !this.maxItemHeight) {
-    //     return this.cols > 3 ? 2 : 1;
-    //   }
-
-    //   let rows = 0;
-
-    //   const BOTTOM_HEIGHT = this.isSingleAddingItem
-    //     ? this.$refs.bottom.$el.offsetHeight
-    //     : 0;
-    //   console.log('BOTTOM_HEIGHT: ' + BOTTOM_HEIGHT);
-    //   const REST_HEIGHT =
-    //     this.screenHeight - this.$refs.top.offsetHeight - BOTTOM_HEIGHT;
-    //   console.log('REST_HEIGHT: ' + REST_HEIGHT);
-
-    //   rows = Math.floor(REST_HEIGHT / this.maxItemHeight);
-    //   rows = rows <= 0 ? 1 : rows;
-
-    //   return rows;
-    // },
     cols() {
       return this.maxScale - this.scale + 1;
     },
@@ -219,9 +199,6 @@ export default {
   },
   methods: {
     ...mapMutations([
-      'clearImageHeights',
-      'setMaxItemHeight',
-      'resetMaxItemHeight',
       'setScale',
       'decScale',
       'incScale',
@@ -300,7 +277,6 @@ export default {
     scrollToLightboxIndex() {
       // console.log('scrollToLightboxIndex');
       const $container = this.$refs.container;
-      // const ELEM_WIDTH = this.elemWidth;
       const GROUP_INDEX = Math.floor(this.lightboxIndex / this.groupSize);
       const ELEM_INDEX = this.lightboxIndex % this.cols;
       const MULTIPLIER = GROUP_INDEX * this.cols + ELEM_INDEX;
@@ -321,10 +297,10 @@ export default {
         }
       }
 
-      let temp = MULTIPLIER - offset;
-      $container.scrollLeft = temp * this.elemWidth;
+      const TEMP = MULTIPLIER - offset;
+      $container.scrollLeft = TEMP * this.elemWidth;
 
-      this.setScrollShift(temp);
+      this.setScrollShift(TEMP);
     },
     scrollTo(dir) {
       // console.log('scrollTo');
@@ -333,7 +309,6 @@ export default {
       }
 
       const $container = this.$refs.container;
-      // const ELEM_WIDTH = this.elemWidth;
       const DIFF = $container.scrollLeft % this.elemWidth;
       const MULTIPLIER = dir > 0 ? 1 : -1;
 
@@ -381,10 +356,6 @@ export default {
         this.scrollShift = value;
       }
     },
-    setTempRows() {
-      const TEMP = Math.floor(window.innerHeight / this.oneRowHeight);
-      this.tempRows = !TEMP ? 1 : TEMP;
-    },
     setScales() {
       // console.log(window.innerHeight);
       // console.log(this.$refs.reload);
@@ -419,45 +390,35 @@ export default {
     onKey(e) {
       e.preventDefault();
       const { key } = e;
-      const STEP = 150;
+      console.log(key);
 
-      if (key == 'ArrowUp') {
+      if (key == 'Escape' && this.toShowLightbox) {
+        this.onHideLightbox();
+      } else if (key == 'ArrowUp') {
         if (this.toShowLightbox) {
           this.onHideLightbox();
         } else {
-          window.scrollBy(0, -STEP);
+          window.scrollBy(0, -this.vertStep);
         }
-        return;
-      }
-
-      if (key == 'ArrowDown') {
+      } else if (key == 'ArrowDown') {
         if (this.toShowLightbox) {
           this.onHideLightbox();
         } else {
-          window.scrollBy(0, STEP);
+          window.scrollBy(0, this.vertStep);
         }
-        return;
-      }
-
-      if (key == 'ArrowLeft') {
+      } else if (key == 'ArrowLeft') {
         if (this.toShowLightbox) {
           this.onPrevSlide();
         } else {
           this.scrollTo(-1);
         }
-        return;
-      }
-
-      if (key == 'ArrowRight') {
+      } else if (key == 'ArrowRight') {
         if (this.toShowLightbox) {
           this.onNextSlide();
         } else {
           this.scrollTo(1);
         }
-        return;
-      }
-
-      if (key == 'Delete') {
+      } else if (key == 'Delete') {
         console.log(key);
         this.delete(this.lightboxIndex);
       }
@@ -478,7 +439,6 @@ export default {
     onRefresh() {
       const $vm = this;
       axios.get(this.uploadHost).then(res => {
-        $vm.clearImageHeights();
         console.log(res.data);
         $vm.setItems(res.data.items);
 
@@ -497,18 +457,6 @@ export default {
         $vm.isLoading = false;
       });
     },
-    recalculateMaxItemHeight() {
-      const $vm = this;
-      if ($vm.items.length) {
-        $vm.$nextTick(() => {
-          // if (byResizing) {
-          $vm.resetMaxItemHeight();
-          // } else {
-          //   $vm.setMaxItemHeight($vm.elemWidth);
-          // }
-        });
-      }
-    },
     onShrinkScale() {
       if (this.scale > this.minScale) {
         // this.decScale();
@@ -523,22 +471,22 @@ export default {
     },
     onRange(value) {
       this.setScale(value);
-      // this.recalculateMaxItemHeight(false);
-      // this.setMaxItemHeight(this.elemWidth);
     },
     onResize() {
       clearTimeout(this.resizeId);
       const $vm = this;
+
       $vm.resizeId = setTimeout(() => {
         console.log('RESIZED');
-        // $vm.setTempRows();
+
         if ($vm.containerWidth != $vm.$refs.container.offsetWidth) {
           $vm.setScales();
-          // $vm.recalculateMaxItemHeight();
         }
+
         if ($vm.screenHeight != document.documentElement.clientHeight) {
           $vm.screenHeight = document.documentElement.clientHeight;
         }
+
         clearTimeout(this.resizeId);
       }, 500);
     },
@@ -573,7 +521,6 @@ export default {
   mounted() {
     window.addEventListener('resize', this.onResize);
     document.addEventListener('keydown', this.onKey);
-    // this.setTempRows();
     this.setScales();
     this.screenHeight = document.documentElement.clientHeight;
   },

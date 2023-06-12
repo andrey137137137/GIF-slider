@@ -5,7 +5,6 @@ b-col(
   @dragstart='onDragStart($event)',
   @dblclick='onShowLightbox'
 )
-  //- ref='col',
   b-card.list-item.frame.slider-frame.drop_area(
     ref='dropArea',
     :class='sliderFrameClasses',
@@ -20,8 +19,7 @@ b-col(
     b-aspect(v-if='!isAddingItem', aspect='16/9')
       b-card-img-lazy(
         :src='"/upload/" + imageName',
-        :alt='"Image " + imageName',
-        @load.native='onLoadImage'
+        :alt='"Image " + imageName'
       )
     label.button.slider-button(:for='uploadID')
       b-icon(:icon='labelIcon', aria-hidden='true')
@@ -65,7 +63,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(['scale', 'itemWidth', 'items', 'imageHeights', 'lastTopID']),
+    ...mapState(['scale', 'itemWidth', 'items', 'lastTopID']),
     id() {
       if (this.isAddingItem) {
         return 0;
@@ -114,8 +112,6 @@ export default {
   },
   methods: {
     ...mapMutations([
-      'setItemWidth',
-      'addImageHeight',
       'setLightboxIndex',
       'insertBeforeItem',
       'replaceItem',
@@ -287,26 +283,6 @@ export default {
     },
     onDelete() {
       this.delete(this.index);
-    },
-    onLoadImage() {
-      if (this.imageHeights.length >= this.items.length) {
-        return;
-      }
-
-      // console.log(this.$refs.col.offsetHeight);
-
-      // if (!this.itemWidth) {
-      //   this.setItemWidth(this.$refs.col.offsetWidth);
-      // }
-
-      // if (!this.isFirstLoading) {
-      //   this.addImageHeight({
-      //     index: this.index,
-      //     height: this.$refs.col.offsetHeight,
-      //   });
-      // } else {
-      //   this.isFirstLoading = false;
-      // }
     },
   },
 };
