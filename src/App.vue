@@ -1,10 +1,11 @@
 <template lang="pug">
 #app.slider
   form.my-form(@submit.prevent='onCancelFormSubmit')
-    b-container
+    b-container(fluid)
       b-row
         b-col
-          b-form-input(v-model='rows', type='number')
+          //- b-form-input(v-model='rows', type='number')
+          b-form-select(v-model='selectedRows', :options='rowsOptions')
         b-col(cols='3')
           b-form-checkbox#checkbox-1(
             v-model='toShowAddItemInGroup',
@@ -88,7 +89,9 @@ export default {
       maxScale: 8,
       containerWidth: 0,
       screenHeight: 0,
-      rows: 1,
+      // rows: 1,
+      selectedRows: null,
+      rowsOptions: [],
       vertStep: 150,
       resizeId: 0,
       loadingId: 0,
@@ -109,6 +112,10 @@ export default {
     },
     areOddItems() {
       return this.items.length % 2;
+    },
+    rows() {
+      // return 1;
+      return !this.selectedRows ? 1 : this.selectedRows;
     },
     cols() {
       return this.maxScale - this.scale + 1;
@@ -516,6 +523,10 @@ export default {
     },
   },
   created() {
+    for (let row = 1; row < 11; row++) {
+      this.rowsOptions.push({ value: row, text: row });
+    }
+    this.selectedRows = this.rowsOptions[0].value;
     this.onRefresh();
   },
   mounted() {
