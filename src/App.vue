@@ -454,30 +454,47 @@ export default {
           return;
         }
 
-        const LAST_INDEX = $vm.items.length - 1;
-        const LAST_LOADED_TOP_ID = $vm.items[LAST_INDEX].name;
-        $vm.setLastTopID(parseInt(LAST_LOADED_TOP_ID));
+        let topID;
 
-        if ($vm.getIdParts(LAST_INDEX).length > 1) {
-          $vm.decLastTopID();
+        for (let index = $vm.items.length - 1; index >= 0; index--) {
+          topID = parseInt($vm.items[index].name);
+
+          if (!isNaN(topID)) {
+            if ($vm.getIdParts(index).length > 1) {
+              topID--;
+            }
+            break;
+          } else if (index == 0) {
+            topID = 0;
+          }
         }
+
+        $vm.setLastTopID(topID);
+
+        // const LAST_INDEX = $vm.items.length - 1;
+        // const LAST_LOADED_TOP_ID = $vm.items[LAST_INDEX].name;
+
+        // $vm.setLastTopID(parseInt(LAST_LOADED_TOP_ID));
+
+        // if ($vm.getIdParts(LAST_INDEX).length > 1) {
+        //   $vm.decLastTopID();
+        // }
+
         $vm.isLoading = false;
       });
     },
     onShrinkScale() {
       if (this.scale > this.minScale) {
-        // this.decScale();
-        this.onRange(this.scale - 1);
+        this.decScale();
       }
     },
     onGrowScale() {
       if (this.scale < this.maxScale) {
-        // this.incScale();
-        this.onRange(this.scale + 1);
+        this.incScale();
       }
     },
     onRange(value) {
-      this.setScale(value);
+      this.setScale(parseInt(value));
     },
     onResize() {
       clearTimeout(this.resizeId);
