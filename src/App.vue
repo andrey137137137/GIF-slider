@@ -538,6 +538,12 @@ export default {
       // }
       console.log(newValue - oldValue);
     },
+    lightboxIndex() {
+      const NAME = this.toShowLightbox
+        ? this.items[this.lightboxIndex].name
+        : '';
+      document.title = NAME;
+    },
   },
   created() {
     for (let row = 1; row < 11; row++) {
