@@ -5,12 +5,18 @@
       b-row
         b-col
           //- b-form-input(v-model='rows', type='number')
-          b-form-select(v-model='selectedRows', :options='rowsOptions')
+          b-form-select.slider-select(
+            v-model='selectedRows',
+            :options='rowsOptions'
+          )
         b-col(cols='3')
           b-form-checkbox#checkbox-1(
             v-model='toShowAddItemInGroup',
-            name='checkbox-1'
-          ) To show add item in group
+            name='checkbox-1',
+            button,
+            button-variant='dark'
+          )
+            | To show add item in group
     .d-flex.flex-column(ref='top')
       b-button-group.d-flex.py-4
         CtrlButton(variant='info', title='-', :handle='onShrinkScale')

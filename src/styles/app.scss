@@ -5,15 +5,27 @@
 // @import 'layout/import';
 // @import 'adaptive/import';
 
+html {
+  background-color: $black;
+}
+
 .slider {
   // padding-top: 30px;
+  color: $white;
+  background-color: $black;
+
+  &-select {
+    color: $white !important;
+    background-color: $black !important;
+    border-color: $black !important;
+  }
 
   &-row {
-    outline: 1px red dotted;
+    outline: 1px $white dotted;
   }
 
   &-main {
-    background-color: $white;
+    background-color: $black;
     min-height: 100%;
     position: fixed;
     top: 0;
@@ -77,9 +89,13 @@
   }
 
   &-frame {
+    border-color: $white;
+    background-color: $black;
+
     &_img_wrap {
       user-select: none;
     }
+
     &--last {
       height: 99%;
 
@@ -139,14 +155,14 @@ p {
 .button {
   display: block;
   padding: 10px;
-  background: #ccc;
+  background-color: $black;
   cursor: pointer;
   border-radius: 5px;
-  border: 1px solid #ccc;
+  border: 1px solid $black;
 }
 
 .button:hover {
-  background: #ddd;
+  background: $grey;
 }
 
 .file_elem {

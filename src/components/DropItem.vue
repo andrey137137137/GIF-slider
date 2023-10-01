@@ -6,6 +6,8 @@ b-col(
   @dblclick='onShowLightbox'
 )
   b-card.list-item.frame.slider-frame.drop_area(
+    bg-variant='dark',
+    text-variant='white',
     ref='dropArea',
     :class='sliderFrameClasses',
     tag='article',
@@ -29,12 +31,7 @@ b-col(
       //-   CtrlButton(variant='info', title='<', :handle='onRenameToPrev')
       b-button-group.mx-1
         CtrlButton(:for='replaceID', tag='label', icon='cloud-upload')
-        CtrlButton(
-          icon='x-circle',
-          scale='2',
-          variant='danger',
-          :handle='onDelete'
-        )
+        CtrlButton(icon='x-circle', scale='2', :handle='onDelete')
       //- b-button-group.mx-1(v-if='isNotLast')
       //-   CtrlButton(variant='info', title='>', :handle='onRenameToNext')
 </template>

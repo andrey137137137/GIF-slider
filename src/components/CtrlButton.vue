@@ -21,7 +21,7 @@ export default {
   props: {
     tag: { type: String, default: 'button' },
     scale: { type: String, default: '1' },
-    variant: { type: String, default: 'secondary' },
+    variant: { type: String, default: 'dark' },
     iconVariant: { type: String, default: 'white' },
     title: { type: String, default: '' },
     icon: { type: String, default: '' },
