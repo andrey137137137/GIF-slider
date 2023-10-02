@@ -18,8 +18,18 @@ export default new Vuex.Store({
     items: [],
     lightboxIndex: -1,
     lastTopID: 0,
+    isBlackTheme: false,
   },
   getters: {
+    buttonStyle(state) {
+      return state.isBlackTheme ? 'dark' : 'secondary';
+    },
+    cardBgStyle(state) {
+      return state.isBlackTheme ? 'dark' : 'light';
+    },
+    cardTextStyle(state) {
+      return state.isBlackTheme ? 'white' : 'black';
+    },
     toShowPrev(state) {
       return isLargerFirst(state.lightboxIndex);
     },
@@ -29,6 +39,9 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    toggleTheme(state) {
+      state.isBlackTheme = !state.isBlackTheme;
+    },
     setScale(state, height) {
       state.scale = height;
     },

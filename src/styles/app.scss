@@ -5,27 +5,22 @@
 // @import 'layout/import';
 // @import 'adaptive/import';
 
-html {
-  background-color: $black;
-}
+// html {
+//   background-color: $black;
+// }
 
 .slider {
+  $elem: &;
+
   // padding-top: 30px;
   color: $white;
-  background-color: $black;
-
-  &-select {
-    color: $white !important;
-    background-color: $black !important;
-    border-color: $black !important;
-  }
 
   &-row {
-    outline: 1px $white dotted;
+    outline: 1px $red dotted;
   }
 
   &-main {
-    background-color: $black;
+    background-color: $white;
     min-height: 100%;
     position: fixed;
     top: 0;
@@ -88,10 +83,11 @@ html {
     }
   }
 
-  &-frame {
-    border-color: $white;
-    background-color: $black;
+  &-button {
+    background-color: #6c757d;
+  }
 
+  &-frame {
     &_img_wrap {
       user-select: none;
     }
@@ -99,9 +95,35 @@ html {
     &--last {
       height: 99%;
 
-      .slider-button {
+      #{$elem}-button {
         height: 100%;
       }
+    }
+  }
+
+  &--black {
+    background-color: $black;
+
+    #{$elem}-select {
+      color: $white !important;
+      background-color: $black !important;
+      border-color: $black !important;
+    }
+
+    #{$elem}-row {
+      outline: 1px $white dotted;
+    }
+
+    #{$elem}-button {
+      background-color: #343a40;
+
+      &:hover {
+        background: $grey;
+      }
+    }
+
+    #{$elem}-main {
+      background-color: $black;
     }
   }
 }
@@ -155,7 +177,6 @@ p {
 .button {
   display: block;
   padding: 10px;
-  background-color: $black;
   cursor: pointer;
   border-radius: 5px;
   border: 1px solid $black;

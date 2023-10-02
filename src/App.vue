@@ -1,5 +1,5 @@
 <template lang="pug">
-#app.slider
+#app.slider(:class='sliderThemeClass')
   form.my-form(@submit.prevent='onCancelFormSubmit')
     b-container(fluid)
       b-row
@@ -9,14 +9,24 @@
             v-model='selectedRows',
             :options='rowsOptions'
           )
-        b-col(cols='3')
+        b-col(cols='2')
           b-form-checkbox#checkbox-1(
             v-model='toShowAddItemInGroup',
             name='checkbox-1',
             button,
-            button-variant='dark'
+            :button-variant='buttonStyle'
           )
             | To show add item in group
+        b-col(cols='1')
+          b-form-checkbox#checkbox-2(
+            switch,
+            :value='isBlackTheme',
+            @change='toggleTheme',
+            name='checkbox-2',
+            button,
+            :button-variant='buttonStyle'
+          )
+            | Toggle theme on {{ themeCheckboxText }}
     .d-flex.flex-column(ref='top')
       b-button-group.d-flex.py-4
         CtrlButton(variant='info', title='-', :handle='onShrinkScale')
@@ -108,13 +118,17 @@ export default {
     };
   },
   computed: {
-    ...mapState(['scale', 'items', 'lightboxIndex']),
-    ...mapGetters(['toShowPrev', 'toShowNext']),
+    // ...mapState(['isBlackTheme', 'scale', 'items', 'lightboxIndex']),
+    ...mapState(['isBlackTheme', 'scale']),
+    ...mapGetters(['buttonStyle', 'toShowPrev', 'toShowNext']),
+    sliderThemeClass() {
+      return this.isBlackTheme ? 'slider--black' : '';
+    },
+    themeCheckboxText() {
+      return this.isBlackTheme ? 'white' : 'black';
+    },
     isNotOneCol() {
       return this.cols > 1;
-    },
-    toShowLightbox() {
-      return this.lightboxIndex >= 0;
     },
     areOddItems() {
       return this.items.length % 2;
@@ -212,6 +226,7 @@ export default {
   },
   methods: {
     ...mapMutations([
+      'toggleTheme',
       'setScale',
       'decScale',
       'incScale',
@@ -432,7 +447,6 @@ export default {
           this.scrollTo(1);
         }
       } else if (key == 'Delete') {
-        console.log(key);
         this.delete(this.lightboxIndex);
       }
     },
@@ -545,10 +559,7 @@ export default {
       console.log(newValue - oldValue);
     },
     lightboxIndex() {
-      const NAME = this.toShowLightbox
-        ? this.items[this.lightboxIndex].name
-        : '';
-      document.title = NAME;
+      this.refreshDocumentTitle();
     },
   },
   created() {

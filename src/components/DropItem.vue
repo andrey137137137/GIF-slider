@@ -6,8 +6,8 @@ b-col(
   @dblclick='onShowLightbox'
 )
   b-card.list-item.frame.slider-frame.drop_area(
-    bg-variant='dark',
-    text-variant='white',
+    :bg-variant='cardBgStyle',
+    :text-variant='cardTextStyle',
     ref='dropArea',
     :class='sliderFrameClasses',
     tag='article',
@@ -30,8 +30,18 @@ b-col(
       //- b-button-group.mx-1(v-if='isNotFirst')
       //-   CtrlButton(variant='info', title='<', :handle='onRenameToPrev')
       b-button-group.mx-1
-        CtrlButton(:for='replaceID', tag='label', icon='cloud-upload')
-        CtrlButton(icon='x-circle', scale='2', :handle='onDelete')
+        CtrlButton(
+          icon='cloud-upload',
+          tag='label',
+          :for='replaceID',
+          :variant='buttonStyle'
+        )
+        CtrlButton(
+          icon='x-circle',
+          scale='2',
+          :handle='onDelete',
+          :variant='buttonStyle'
+        )
       //- b-button-group.mx-1(v-if='isNotLast')
       //-   CtrlButton(variant='info', title='>', :handle='onRenameToNext')
 </template>
@@ -41,7 +51,7 @@ import axios from 'axios';
 import dropMixin from '@/dropMixin';
 import FileInput from '@components/FileInput';
 import CtrlButton from '@components/CtrlButton';
-import { mapState, mapMutations } from 'vuex';
+import { mapState, mapGetters, mapMutations } from 'vuex';
 
 export default {
   name: 'DropItem',
@@ -60,7 +70,9 @@ export default {
     };
   },
   computed: {
-    ...mapState(['scale', 'itemWidth', 'items', 'lastTopID']),
+    // ...mapState(['scale', 'itemWidth', 'items', 'lastTopID']),
+    ...mapState(['scale', 'itemWidth', 'lastTopID']),
+    ...mapGetters(['cardBgStyle', 'cardTextStyle', 'buttonStyle']),
     id() {
       if (this.isAddingItem) {
         return 0;
@@ -113,7 +125,7 @@ export default {
       'insertBeforeItem',
       'replaceItem',
       'addItem',
-      'deleteItem',
+      // 'deleteItem',
     ]),
     getLabelAttrFor(inputName) {
       return this.isAddingItem ? inputName : inputName + this.index;
