@@ -67,8 +67,18 @@
       b-row.slider-row.mx-0(v-if='isEmptyGroup', :style='emptyGroupStyle')
         DropItem(:style='elemStyle')
   DropItem(v-show='isSingleAddingItem', :isSingle='true', ref='bottom')
-  .slider-main(v-show='toShowLightbox', @wheel.prevent='onLightboxWheel')
-    .slider-main_img_wrap.d-flex.align-items-center(@dblclick='onHideLightbox')
+  .slider-main(
+    v-show='toShowLightbox',
+    @wheel.prevent='onLightboxWheel',
+    @dragstart='onDragStart($event)'
+  )
+    .slider-main_img_wrap.d-flex.align-items-center(
+      @dblclick='onHideLightbox',
+      @dragenter.prevent.stop='onDragEnter',
+      @dragover.prevent.stop='onDragOver',
+      @dragleave.prevent.stop='onDragLeave',
+      @drop.prevent.stop='onDrop($event, lightboxIndex)'
+    )
       img.slider-main_img(:src='lightBoxSrc')
     .slider-nav.slider-nav--prev(
       v-show='toShowPrev',
@@ -100,7 +110,7 @@ export default {
     return {
       containerOuterWidth: 0,
       oneRowHeight: 395,
-      curIndex: 0,
+      // curIndex: 0,
       minScale: 1,
       maxScale: 8,
       containerWidth: 0,
@@ -222,6 +232,12 @@ export default {
       }
       const { name, ext } = this.items[this.lightboxIndex];
       return '/upload/' + name + ext;
+    },
+    name() {
+      return this.getItemProp(this.lightboxIndex, 'name');
+    },
+    ext() {
+      return this.getItemProp(this.lightboxIndex, 'ext');
     },
   },
   methods: {
@@ -403,6 +419,9 @@ export default {
         this.setScale(this.maxScale);
       }
     },
+    getWheelDirect(delta) {
+      return delta > 0 ? 1 : -1;
+    },
     onHideLightbox() {
       this.clearLightboxIndex();
       document.body.style.overflow = '';
@@ -451,10 +470,10 @@ export default {
       }
     },
     onContainerWheel(e) {
-      this.scrollTo(e.deltaY > 0 ? -1 : 1);
+      this.scrollTo(this.getWheelDirect(e.deltaY));
     },
     onLightboxWheel(e) {
-      if (e.deltaY > 0) {
+      if (this.getWheelDirect(e.deltaY) < 0) {
         this.onPrevSlide();
       } else {
         this.onNextSlide();

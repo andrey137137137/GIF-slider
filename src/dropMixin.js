@@ -9,18 +9,76 @@ export default {
       uploadHost: SERVER_BASE_URL + 'image',
       isHighlighted: false,
       separator: ID_SEPARATOR,
+      dataTransferAttrName: 'nameID',
+      dataTransferAttrExt: 'ext',
     };
   },
   computed: {
-    ...mapState(['items', 'lightboxIndex']),
+    ...mapState(['items', 'lightboxIndex', 'lastTopID']),
     toShowLightbox() {
       return this.lightboxIndex >= 0;
+    },
+    curIndex() {
+      return this.toShowLightbox ? this.lightboxIndex : this.index;
+    },
+    isAddingItem() {
+      return this.curIndex < 0;
+    },
+    // name() {
+    //   return this.getItemProp(this.curIndex, 'name');
+    // },
+    // ext() {
+    //   return this.getItemProp(this.curIndex, 'ext');
+    // },
+    imageName() {
+      return this.name + this.ext;
     },
   },
   methods: {
     ...mapMutations(['deleteItem']),
+    getItemProp(index, propName) {
+      console.log(index);
+      if (index < 0) {
+        return '';
+      }
+      return this.items[index][propName];
+    },
+    getExt(fileName) {
+      const LAST_SEPARATOR = fileName.lastIndexOf('.');
+      return fileName.slice(LAST_SEPARATOR);
+    },
     getIdParts(index) {
       return getIdParts(this.items[index].name);
+    },
+    calcBeforeID(index = -1) {
+      const CUR_INDEX = index < 0 ? this.curIndex : index;
+      const idParts = this.getIdParts(CUR_INDEX);
+      const COUNT_PARTS = idParts.length;
+      const PREV_INDEX = CUR_INDEX - 1;
+      let postfix = '1';
+      let result = '';
+
+      if (PREV_INDEX >= 0) {
+        const prevIdParts = this.getIdParts(PREV_INDEX);
+        const PREV_COUNT_PARTS = prevIdParts.length;
+        const DIFF = PREV_COUNT_PARTS - COUNT_PARTS;
+
+        if (DIFF == 1) {
+          const PART_INDEX = PREV_COUNT_PARTS - DIFF;
+          postfix = parseInt(prevIdParts[PART_INDEX]) + 1;
+        }
+      }
+
+      for (let index = 0; index < idParts.length; index++) {
+        result += idParts[index] + this.separator;
+      }
+
+      result += postfix;
+      return result;
+    },
+    getTempID(index = -1) {
+      const COND = index < 0 ? !this.isAddingItem : this.items[index];
+      return COND ? this.calcBeforeID(index) : this.lastTopID + 1;
     },
     refreshDocumentTitle() {
       const NAME = this.toShowLightbox
@@ -43,6 +101,105 @@ export default {
           this.refreshDocumentTitle();
         });
       }
+    },
+    uploadFile(file, isReplacing = false) {
+      // const { index } = this;
+      const index = this.curIndex;
+      const $vm = this;
+      const ext = this.getExt(file.name);
+      const TEMP_ID = isReplacing ? this.name : this.getTempID();
+      const IMAGE_NAME = TEMP_ID + ext;
+      const EXIST_NAME = isReplacing ? '' : IMAGE_NAME;
+      const form = new FormData();
+
+      console.log(EXIST_NAME);
+      form.append('image', file, IMAGE_NAME);
+      axios
+        .post(this.uploadHost + '/' + EXIST_NAME, form)
+        .then(() => {
+          if (isReplacing) {
+            $vm.replaceItem({ index, ext });
+          } else if ($vm.isAddingItem) {
+            $vm.addItem({ lastTopID: TEMP_ID, ext });
+          } else {
+            $vm.insertBeforeItem({ name: TEMP_ID, ext, index });
+          }
+          if ($vm.isAddingItem) {
+            $vm.$nextTick(() => {
+              $vm.$parent.scrollToLastIndex();
+            });
+          }
+        })
+        .catch(res => {
+          console.log(res);
+          alert(res);
+        });
+    },
+    uploadFiles(files) {
+      const filesList = [...files];
+      filesList.forEach(this.uploadFile);
+    },
+    renameFile(objOrDir = 1) {
+      const $vm = this;
+      const IS_TRANSPORTED = !Number.isInteger(objOrDir);
+      const STEP = !IS_TRANSPORTED && objOrDir > 0 ? 2 : -1;
+      const NEW_INDEX = IS_TRANSPORTED ? -1 : this.index + STEP;
+      const EXT = IS_TRANSPORTED ? objOrDir.ext : this.ext;
+      const IMAGE_NAME = IS_TRANSPORTED ? objOrDir.name + EXT : this.imageName;
+      const TEMP_ID = this.getTempID(NEW_INDEX);
+      axios
+        .get(this.uploadHost + '/' + IMAGE_NAME + '/' + TEMP_ID + EXT)
+        .then(() => {
+          $vm.$parent.onRefresh();
+        })
+        .catch(res => {
+          console.log(res);
+          alert(res);
+        });
+    },
+    onDragStart(e) {
+      const dt = e.dataTransfer;
+      dt.dropEffect = 'move';
+      dt.effectAllowed = 'move';
+      dt.setData(this.dataTransferAttrName, this.name);
+      dt.setData(this.dataTransferAttrExt, this.ext);
+    },
+    onDragEnd() {
+      this.isTransporting = false;
+    },
+    onDragEnter() {
+      this.isHighlighted = true;
+    },
+    onDragOver() {
+      this.isHighlighted = true;
+    },
+    onDragLeave() {
+      this.isHighlighted = false;
+    },
+    onDrop(e, index) {
+      const dt = e.dataTransfer;
+      const DT_NAME = dt.getData(this.dataTransferAttrName);
+      console.log('Drop targer: ' + this.name);
+      console.log('Dropping:    ' + DT_NAME);
+      this.isHighlighted = false;
+
+      if (DT_NAME) {
+        if (index < 0 && this.compareDroppingFile(this.items.length, DT_NAME)) {
+          return;
+        }
+        if (index > 0 && this.compareDroppingFile(index, DT_NAME)) {
+          return;
+        }
+        if (this.name != DT_NAME) {
+          this.renameFile({
+            name: DT_NAME,
+            ext: dt.getData(this.dataTransferAttrExt),
+          });
+        }
+        return;
+      }
+
+      this.uploadFiles(dt.files);
     },
   },
 };
