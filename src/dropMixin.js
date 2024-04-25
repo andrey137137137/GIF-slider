@@ -35,7 +35,12 @@ export default {
     },
   },
   methods: {
-    ...mapMutations(['deleteItem']),
+    ...mapMutations([
+      'insertBeforeItem',
+      'replaceItem',
+      'addItem',
+      'deleteItem',
+    ]),
     getItemProp(index, propName) {
       console.log(index);
       if (index < 0) {
@@ -138,24 +143,6 @@ export default {
     uploadFiles(files) {
       const filesList = [...files];
       filesList.forEach(this.uploadFile);
-    },
-    renameFile(objOrDir = 1) {
-      const $vm = this;
-      const IS_TRANSPORTED = !Number.isInteger(objOrDir);
-      const STEP = !IS_TRANSPORTED && objOrDir > 0 ? 2 : -1;
-      const NEW_INDEX = IS_TRANSPORTED ? -1 : this.index + STEP;
-      const EXT = IS_TRANSPORTED ? objOrDir.ext : this.ext;
-      const IMAGE_NAME = IS_TRANSPORTED ? objOrDir.name + EXT : this.imageName;
-      const TEMP_ID = this.getTempID(NEW_INDEX);
-      axios
-        .get(this.uploadHost + '/' + IMAGE_NAME + '/' + TEMP_ID + EXT)
-        .then(() => {
-          $vm.$parent.onRefresh();
-        })
-        .catch(res => {
-          console.log(res);
-          alert(res);
-        });
     },
     onDragStart(e) {
       const dt = e.dataTransfer;

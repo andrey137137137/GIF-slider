@@ -47,6 +47,7 @@ b-col(
 </template>
 
 <script>
+import axios from 'axios';
 import dropMixin from '@/dropMixin';
 import FileInput from '@components/FileInput';
 import CtrlButton from '@components/CtrlButton';
@@ -116,9 +117,9 @@ export default {
   methods: {
     ...mapMutations([
       'setLightboxIndex',
-      'insertBeforeItem',
-      'replaceItem',
-      'addItem',
+      // 'insertBeforeItem',
+      // 'replaceItem',
+      // 'addItem',
       // 'deleteItem',
     ]),
     getLabelAttrFor(inputName) {
@@ -126,6 +127,24 @@ export default {
     },
     compareDroppingFile(index, name) {
       return this.items[index - 1].name == name;
+    },
+    renameFile(objOrDir = 1) {
+      const $vm = this;
+      const IS_TRANSPORTED = !Number.isInteger(objOrDir);
+      const STEP = !IS_TRANSPORTED && objOrDir > 0 ? 2 : -1;
+      const NEW_INDEX = IS_TRANSPORTED ? -1 : this.index + STEP;
+      const EXT = IS_TRANSPORTED ? objOrDir.ext : this.ext;
+      const IMAGE_NAME = IS_TRANSPORTED ? objOrDir.name + EXT : this.imageName;
+      const TEMP_ID = this.getTempID(NEW_INDEX);
+      axios
+        .get(this.uploadHost + '/' + IMAGE_NAME + '/' + TEMP_ID + EXT)
+        .then(() => {
+          $vm.$parent.onRefresh();
+        })
+        .catch(res => {
+          console.log(res);
+          alert(res);
+        });
     },
     onShowLightbox() {
       this.setLightboxIndex(this.index);
